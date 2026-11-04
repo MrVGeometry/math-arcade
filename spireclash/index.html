@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Spireclash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Spectral:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game"></div>
+
+<div id="hud" class="hidden">
+  <div id="vignette"></div>
+  <div id="damage-dir"></div>
+  <div id="crosshair"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><b></b></div>
+  <div id="hitmarker"></div>
+  <div id="piece-info"></div>
+  <div id="status-line"></div>
+  <div id="dmg-layer"></div>
+
+  <div id="scoreboard">
+    <div class="side you"><span>You</span><b id="score-you">0</b></div>
+    <div class="mid"><div id="round-label">Round 1</div><div id="round-timer" aria-live="off">1:00</div><div class="first-to">First to 3</div></div>
+    <div class="side foe"><b id="score-foe">0</b><span id="foe-name">Rival</span></div>
+  </div>
+  <div id="banner"></div>
+  <div id="hint">Esc to pause</div>
+  <div id="rotate-hint"><div>Turn your device sideways to duel</div></div>
+
+  <div id="touch-ui" class="hidden">
+    <div id="t-pad"></div>
+    <div id="t-stick"><div id="t-knob"></div></div>
+    <button class="tb" id="t-pause" type="button" data-tap="pause" aria-label="Pause">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    </button>
+    <button class="tb t-fire" id="t-fire" type="button" data-hold="fire" aria-label="Fire">
+      <svg class="i-shoot" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16 2v8M16 22v8M2 16h8M22 16h8" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="16" r="2" fill="currentColor"/></svg>
+      <svg class="i-place" viewBox="0 0 32 32"><rect x="4" y="9" width="18" height="16" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 15h18M4 20h18M10 9v6M16 15v5M10 20v5" stroke="currentColor" stroke-width="1.5"/><path d="M26 3v10M21 8h10" stroke="currentColor" stroke-width="2.6"/></svg>
+    </button>
+    <button class="tb t-fire" id="t-fire-l" type="button" data-hold="fire" aria-label="Fire">
+      <svg class="i-shoot" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="16" cy="16" r="2.4" fill="currentColor"/></svg>
+      <svg class="i-place" viewBox="0 0 32 32"><rect x="6" y="9" width="20" height="16" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M6 17h20M16 9v8" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+    <button class="tb" id="t-jump" type="button" data-hold="jump" aria-label="Jump">
+      <svg viewBox="0 0 32 32"><path d="M7 19l9-9 9 9M7 26l9-9 9 9" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="tb" id="t-ads" type="button" data-tap="ads" aria-label="Steady aim">
+      <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 3v8M16 21v8M3 16h8M21 16h8" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+    <button class="tb" id="t-reload" type="button" data-tap="reload" aria-label="Reload">
+      <svg viewBox="0 0 32 32"><path d="M25 12a10 10 0 1 0 1 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M26 4v8h-8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="tb" id="t-phase" type="button" data-tap="wand" aria-label="Phase wand">
+      <svg viewBox="0 0 32 32"><path d="M5 27 19 13" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M22 3l1.6 4.4L28 9l-4.4 1.6L22 15l-1.6-4.4L16 9l4.4-1.6z" fill="currentColor"/><path d="M27 18l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM12 5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4L10 7l1.4-.6z" fill="currentColor" opacity="0.7"/></svg>
+      <span>Phase</span>
+    </button>
+    <button class="tb" id="t-build" type="button" data-tap="toggleBuild" aria-label="Switch between building and combat">
+      <svg class="i-shoot" viewBox="0 0 32 32"><path d="M5 26l12-12M14 5l9 3 4 4-3 3-4-4-6 2z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>
+      <svg class="i-place" viewBox="0 0 32 32"><path d="M6 26 26 6M9 9c4-6 14-6 17 1M9 9c-6 4-6 14 1 17" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>
+      <span class="i-shoot">Build</span><span class="i-place">Combat</span>
+    </button>
+  </div>
+
+  <div id="vitals">
+    <div class="bar ward"><div id="ward-fill"></div><span id="ward-text">Ward 50</span></div>
+    <div class="bar health"><div id="hp-fill"></div><span id="hp-text">Health 100</span></div>
+  </div>
+
+  <div id="hotbar">
+    <div class="group">
+      <div class="slot" id="slot-w0"><kbd data-bind="bow">1</kbd>
+        <svg viewBox="0 0 32 32"><path d="M6 26 26 6M9 9c4-6 14-6 17 1M9 9c-6 4-6 14 1 17" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        <span class="name">Runebow</span><span class="sub" id="ammo-0">10 / 10</span></div>
+      <div class="slot" id="slot-w1"><kbd data-bind="staff">2</kbd>
+        <svg viewBox="0 0 32 32"><path d="M7 27 22 12" stroke="currentColor" stroke-width="2.6"/><circle cx="24" cy="9" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M27 4l2-2M29 9h2M24 3V1" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="name">Dragonbreath</span><span class="sub" id="ammo-1">5 / 5</span></div>
+      <div class="slot" id="slot-pot"><kbd data-bind="draught">3</kbd>
+        <svg viewBox="0 0 32 32"><path d="M13 4h6M14 4v6l-6 8a8 8 0 1 0 16 0l-6-8V4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        <span class="name">Draught</span><span class="sub" id="pot-count">x2</span></div>
+    </div>
+    <div class="group wand">
+      <div class="slot" id="slot-wand"><kbd data-bind="wand">G</kbd>
+        <svg viewBox="0 0 32 32"><path d="M5 27 19 13" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M22 3l1.6 4.4L28 9l-4.4 1.6L22 15l-1.6-4.4L16 9l4.4-1.6z" fill="currentColor"/><path d="M27 18l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM12 5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4L10 7l1.4-.6z" fill="currentColor" opacity="0.7"/></svg>
+        <span class="name">Phase</span><span class="sub" id="wand-sub">Ready</span></div>
+    </div>
+    <div class="group builds">
+      <div class="slot build" id="slot-wall"><kbd data-bind="wall">Q</kbd>
+        <svg viewBox="0 0 32 32"><rect x="5" y="6" width="22" height="20" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5 13h22M5 19h22M12 6v7M20 13v6M12 19v7" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="name">Wall</span></div>
+      <div class="slot build" id="slot-ramp"><kbd data-bind="ramp">E</kbd>
+        <svg viewBox="0 0 32 32"><path d="M4 27h24V6z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 27v-5h5v-5h5v-5h5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="name">Stair</span></div>
+      <div class="slot build" id="slot-floor"><kbd data-bind="floor">F</kbd>
+        <svg viewBox="0 0 32 32"><path d="M3 20 12 13h17l-9 7z" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        <span class="name">Floor</span></div>
+      <div class="slot build" id="slot-roof"><kbd data-bind="roof">C</kbd>
+        <svg viewBox="0 0 32 32"><path d="M4 25 16 6l12 19zM16 6v19" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        <span class="name">Spire</span></div>
+      <div class="slot build" id="slot-box"><kbd data-bind="box">B</kbd>
+        <svg viewBox="0 0 32 32"><path d="M5 11 16 5l11 6v12l-11 6-11-6z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5 11l11 6 11-6M16 17v12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="name">Box</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="menu" class="overlay">
+  <div class="card">
+    <h1 class="title">Spireclash</h1>
+    <p class="tagline">Conjure stone, seize the high ground and best your rival in the warded arena.</p>
+
+    <h2>Choose your rival</h2>
+    <div class="diff-grid" id="diff-grid">
+      <button class="diff" data-diff="squire" type="button">
+        <div class="pips"><i class="on"></i><i></i><i></i></div>
+        <h3>Squire</h3>
+        <div class="who">Bramble the Squire</div>
+        <p>Still learning the blade. Slow to react, loose with a bow and only sometimes raises a wall when struck.</p>
+      </button>
+      <button class="diff" data-diff="knight" type="button">
+        <div class="pips"><i class="on"></i><i class="on"></i><i></i></div>
+        <h3>Knight</h3>
+        <div class="who">Ser Varrick</div>
+        <p>A seasoned duellist. Walls up when hit, ramp-rushes for height, shoots out your stairs, boxes up to drink and sometimes phases a wall to peek.</p>
+      </button>
+      <button class="diff" data-diff="archmage" type="button">
+        <div class="pips"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <h3>Archmage</h3>
+        <div class="who">Morvane the Archmage</div>
+        <p>Builds like a champion. Instant walls, spiralling ninety-degree climbs, cone control, box repairs, phase-wand peeks and fearsome aim.</p>
+      </button>
+    </div>
+
+    <div class="row">
+      <div class="panel controls">
+        <h2>Controls</h2>
+        <dl class="touch-only">
+          <dt>Left thumb</dt><dd>Touch anywhere on the left to bring up the move stick</dd>
+          <dt>Right thumb</dt><dd>Drag to look; drag on the fire button to aim while shooting</dd>
+          <dt>Fire</dt><dd>Big button on the right, or the small one above the stick</dd>
+          <dt>Build</dt><dd>Hammer button swaps to building; the hotbar turns into wall, stair, floor, spire and box</dd>
+          <dt>Phase</dt><dd>Aim at one of your pieces and tap Phase to walk and shoot through it for a few seconds</dd>
+          <dt>Hotbar</dt><dd>Tap to pick a weapon, drink a draught or choose a piece</dd>
+        </dl>
+        <div class="kb-only">
+        <dl class="mouse">
+          <dt>Mouse</dt><dd>Aim; left click fires or places a piece</dd>
+          <dt>Right click</dt><dd>Steady aim (zoom)</dd>
+          <dt>Scroll</dt><dd>Swap weapons</dd>
+          <dt>Esc</dt><dd>Pause</dd>
+        </dl>
+        <h3 class="binds-title">Keys <span>click one, then press the new key</span></h3>
+        <div class="binds" id="bind-list"></div>
+        <div class="bind-foot">
+          <p class="bind-note" id="bind-note" aria-live="polite"></p>
+          <button class="bind-reset" id="bind-reset" type="button">Reset to defaults</button>
+        </div>
+        </div>
+        <p class="tip kb-only">Hold left click in build mode to place pieces as fast as you can turn. Look up to place walls and floors above you; look down to place them at your feet. The phase wand turns one of your own pieces see-through for a few seconds: walk or shoot through it, or press again to make it solid early.</p>
+      </div>
+      <div class="panel settings">
+        <h2>Settings</h2>
+        <label>Controls
+          <select id="controls-mode">
+            <option value="auto">Automatic (touch on phones and tablets)</option>
+            <option value="touch">Touch screen</option>
+            <option value="mouse">Mouse and keyboard</option>
+          </select></label>
+        <label><span class="kb-only">Mouse sensitivity</span><span class="touch-only">Look sensitivity</span> <output id="sens-out">1.0</output>
+          <input type="range" id="sens" min="0.2" max="3" step="0.1" value="1"></label>
+        <label>Volume <output id="vol-out">70</output>
+          <input type="range" id="vol" min="0" max="1" step="0.05" value="0.7"></label>
+        <label class="check kb-only"><input type="checkbox" id="instant"> Place pieces the moment a build key is pressed</label>
+        <button class="btn-primary" id="start" type="button">Enter the arena</button>
+        <button class="btn-ghost" id="spectate" type="button">Watch two Archmages duel</button>
+        <a class="btn-ghost" href="../arcade.html">Back to the arcade</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pause" class="overlay hidden">
+  <div class="card small">
+    <h2 class="big">Paused</h2>
+    <button class="btn-primary" id="resume" type="button">Resume</button>
+    <button class="btn-ghost" id="quit" type="button">Leave the arena</button>
+  </div>
+</div>
+
+<div id="end" class="overlay hidden">
+  <div class="card small">
+    <h2 class="big" id="end-title">Victory</h2>
+    <p id="end-sub" class="tagline"></p>
+    <div id="end-stats" class="stats"></div>
+    <button class="btn-primary" id="again" type="button">Duel again</button>
+    <button class="btn-ghost" id="to-menu" type="button">Choose another rival</button>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/paint.js"></script>
+<script src="js/builds.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/firefx.js"></script>
+<script src="js/armour-tex.js"></script>
+<script src="js/armour.js"></script>
+<script src="js/cuirass.js"></script>
+<script src="js/legs.js"></script>
+<script src="js/sword.js"></script>
+<script src="js/runebow.js"></script>
+<script src="js/dragonbreath.js"></script>
+<script src="js/helm.js"></script>
+<script src="js/cape-tex.js"></script>
+<script src="js/cape.js"></script>
+<script src="js/tabard.js"></script>
+<script src="js/models.js"></script>
+<script src="js/character.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/land.js"></script>
+<script src="js/trees.js"></script>
+<script src="js/castle-tex.js"></script>
+<script src="js/castle.js"></script>
+<script src="js/clouds.js"></script>
+<script src="js/world.js"></script>
+<script src="js/keybinds.js"></script>
+<script src="js/touch.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>if (!sessionStorage.getItem("mathArcadeSession")) location.replace("index.html");</script>
+<title>Tic-Tac-Toe</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="arcade.html">&lt; ARCADE</a>
+  <nav>
+    <button class="btn small ghost" type="button" data-mute>Sound: on</button>
+    <button class="btn small ghost" type="button" data-signout>Sign out</button>
+  </nav>
+</header>
+<main class="screen">
+  <h1 class="heading">TIC-TAC-TOE</h1>
+  <div class="scores">
+    <div class="score you">YOU<strong id="score-you">0</strong></div>
+    <div class="score draw">DRAW<strong id="score-draw">0</strong></div>
+    <div class="score cpu">CPU<strong id="score-cpu">0</strong></div>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite">Loading...</p>
+  <div id="board" class="board" role="group" aria-label="Tic-tac-toe board"></div>
+  <button id="again" class="btn" type="button" hidden>Play again</button>
+  <p class="fine">You are X. Get the answer right to place your X. Get it wrong and the CPU takes its turn.</p>
+</main>
+<script type="module" src="js/tictactoe.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>if (!sessionStorage.getItem("mathArcadeSession")) location.replace("index.html");</script>
+<title>Teacher Controls</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="arcade.html">&lt; ARCADE</a>
+  <nav>
+    <button class="btn small ghost" type="button" data-signout>Sign out</button>
+  </nav>
+</header>
+<main class="screen">
+  <h1 class="heading">TEACHER CONTROLS</h1>
+  <div class="teacher">
+    <p id="open-warning" class="warning" hidden>Local test mode: you can see this page because the site is running on your own computer. On the live site only the teacher emails in js/config.js can open it. See the README.</p>
+
+    <section class="panel">
+      <h2>QUESTION SET</h2>
+      <div class="toolbar">
+        <label class="wide">Editing <select id="set"></select></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>HOW PUBLISHING WORKS</h2>
+      <p class="note">Edit below (your draft autosaves in this browser). When you're happy, press Export to download <span data-file>questions.json</span>. Replace that file in the site folder with it and push. Students get the new set on their next page load.</p>
+      <div class="toolbar">
+        <button id="export" class="btn" type="button">Export <span data-file>questions.json</span></button>
+        <button id="reset" class="btn small ghost" type="button">Discard draft</button>
+      </div>
+      <p id="save-status" class="note" role="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>ADD QUESTIONS</h2>
+      <div class="toolbar">
+        <button id="add" class="btn small" type="button">+ Blank question</button>
+        <label>How many <input id="generate-count" type="number" min="1" max="50" value="10"></label>
+        <button id="generate" class="btn small alt" type="button">Generate <span id="generate-kind">1-step</span> equations</button>
+      </div>
+      <p class="note">Answers are checked as numbers when possible, so 7, x = 7 and 7.0 all count. Fractions like 1/2 work too.</p>
+    </section>
+
+    <section class="panel">
+      <h2 id="count">0 questions</h2>
+      <ol id="question-list" class="q-list"></ol>
+    </section>
+  </div>
+</main>
+<script type="module" src="js/teacher.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>if (!sessionStorage.getItem("mathArcadeSession")) location.replace("index.html");</script>
+<title>Deus Draconis</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="arcade.html">&lt; ARCADE</a>
+  <nav>
+    <button class="btn small ghost" type="button" data-mute>Sound: on</button>
+    <button class="btn small ghost" type="button" data-signout>Sign out</button>
+  </nav>
+</header>
+<main class="screen">
+  <h1 class="heading">DEUS DRACONIS</h1>
+  <canvas id="game" class="game-canvas" width="480" height="360" aria-label="Deus Draconis game. Fly the dragon, dodge monsters and slime, and breathe fire."></canvas>
+  <p id="load-error" class="status" role="status"></p>
+  <p class="controls">
+    <strong>Move:</strong> arrow keys, WASD, or drag &nbsp;
+    <strong>Fire:</strong> space or tap<br>
+    Survive 90 seconds. Don't touch the monsters or their slime. You get 3 lives.
+    Every 30 seconds a math question pops up: answer it for a short shield, and get it
+    right for +10 points and full fire.
+  </p>
+</main>
+<script type="module" src="js/draconis/game.js"></script>
+</body>
+</html>

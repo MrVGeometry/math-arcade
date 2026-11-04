@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>Math Arcade</title>
+</head>
+<body>
+<main class="screen center">
+  <h1 class="title">MATH<br>ARCADE</h1>
+  <p class="subtitle blink">INSERT COIN TO PLAY</p>
+  <div class="panel">
+    <p>Sign in with Google to start</p>
+    <div id="google-button"></div>
+    <button id="dev-start" class="btn" type="button" hidden>Press start</button>
+    <p id="signin-note" class="note" role="status"></p>
+  </div>
+  <p class="fine">We don't save your name, email, picture or anything else from your Google account. Signing in just unlocks the arcade.</p>
+</main>
+<script type="module" src="js/signin.js"></script>
+</body>
+</html>

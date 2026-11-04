@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>if (!sessionStorage.getItem("mathArcadeSession")) location.replace("index.html");</script>
+<title>Astro Stomp</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="arcade.html">&lt; ARCADE</a>
+  <nav>
+    <button class="btn small ghost" type="button" data-mute>Sound: on</button>
+    <button class="btn small ghost" type="button" data-signout>Sign out</button>
+  </nav>
+</header>
+<main class="screen">
+  <h1 class="heading">ASTRO STOMP</h1>
+  <canvas id="game" class="game-canvas wide" width="960" height="540" aria-label="Astro Stomp game. Guide the astronaut across three planets, smashing aliens from above."></canvas>
+  <p id="load-error" class="status" role="status"></p>
+  <p class="controls wide">
+    <strong>Move:</strong> arrow keys or A/D &nbsp;
+    <strong>Jump:</strong> space, up or W &nbsp;
+    <strong>Smash:</strong> down or S while in the air<br>
+    Cross Mars, Venus and Saturn and reach the rocket on each. Smash aliens from
+    above; touching them from the side costs oxygen. The flying bug dives at you,
+    then lies stunned on the ground: that's your chance. Run out of oxygen and a
+    maths problem pops up: get it right to refill, or the planet starts over.
+  </p>
+</main>
+<script type="module" src="js/astro/game.js"></script>
+</body>
+</html>

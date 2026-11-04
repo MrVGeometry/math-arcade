@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>if (!sessionStorage.getItem("mathArcadeSession")) location.replace("index.html");</script>
+<title>Math Arcade</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="arcade.html">MATH ARCADE</a>
+  <nav>
+    <a class="btn small alt" href="teacher.html" data-teacher-link hidden>Teacher</a>
+    <button class="btn small ghost" type="button" data-mute>Sound: on</button>
+    <button class="btn small ghost" type="button" data-signout>Sign out</button>
+  </nav>
+</header>
+<main class="screen">
+  <h1 class="heading">SELECT YOUR GAME</h1>
+  <div class="games">
+    <a class="game-card" href="tictactoe.html">
+      <div class="mini-board" aria-hidden="true">
+        <span class="mark-x">X</span><span class="mark-o">O</span><span></span>
+        <span></span><span class="mark-x">X</span><span></span>
+        <span class="mark-o">O</span><span></span><span class="mark-x">X</span>
+      </div>
+      <h2>TIC-TAC-TOE</h2>
+      <p>Beat the CPU. Solve a problem to place each X.</p>
+    </a>
+    <a class="game-card" href="draconis.html">
+      <canvas class="card-icon" id="dragon-icon" width="96" height="84" aria-hidden="true"></canvas>
+      <h2>DEUS DRACONIS</h2>
+      <p>Survive 90 seconds of monsters. Solve a 2-step equation every 30 seconds.</p>
+    </a>
+    <a class="game-card" href="astro.html">
+      <canvas class="card-icon" id="astro-icon" width="96" height="84" aria-hidden="true"></canvas>
+      <h2>ASTRO STOMP</h2>
+      <p>Smash aliens across three planets. Solve a problem to refill your oxygen.</p>
+    </a>
+    <a class="game-card" href="spireclash/index.html">
+      <svg class="card-icon" viewBox="0 0 24 21" aria-hidden="true" shape-rendering="crispEdges">
+        <rect x="9" y="1" width="6" height="2" fill="#4b6cff"/>
+        <rect x="8" y="3" width="8" height="2" fill="#4b6cff"/>
+        <rect x="9" y="5" width="6" height="11" fill="#b7ae9c"/>
+        <rect x="11" y="8" width="2" height="3" fill="#46c3ff"/>
+        <rect x="3" y="11" width="6" height="5" fill="#8a8274"/>
+        <rect x="15" y="11" width="6" height="5" fill="#8a8274"/>
+        <rect x="3" y="10" width="2" height="1" fill="#8a8274"/>
+        <rect x="7" y="10" width="2" height="1" fill="#8a8274"/>
+        <rect x="15" y="10" width="2" height="1" fill="#8a8274"/>
+        <rect x="19" y="10" width="2" height="1" fill="#8a8274"/>
+        <rect x="1" y="16" width="22" height="3" fill="#4f7d36"/>
+      </svg>
+      <h2>SPIRECLASH</h2>
+      <p>Build stone walls and stairs to win the high ground in a 1v1 duel against an AI rival.</p>
+    </a>
+  </div>
+</main>
+<script type="module">
+  import { drawAstronautIcon } from "./js/astro/art.js";
+  import { drawDragonIcon } from "./js/draconis/sprites.js";
+  import { initPage } from "./js/ui.js";
+  initPage();
+  drawDragonIcon(document.getElementById("dragon-icon"));
+  drawAstronautIcon(document.getElementById("astro-icon"));
+</script>
+</body>
+</html>

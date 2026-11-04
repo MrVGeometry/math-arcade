@@ -1,0 +1,85 @@
+{
+  "questions": [
+    {
+      "answer": "4",
+      "prompt": "Solve for x: 2x + 3 = 11"
+    },
+    {
+      "answer": "5",
+      "prompt": "Solve for x: 3x + 5 = 20"
+    },
+    {
+      "answer": "5",
+      "prompt": "Solve for x: 4x - 2 = 18"
+    },
+    {
+      "answer": "4",
+      "prompt": "Solve for x: 5x - 7 = 13"
+    },
+    {
+      "answer": "8",
+      "prompt": "Solve for x: 2x - 6 = 10"
+    },
+    {
+      "answer": "6",
+      "prompt": "Solve for x: 6x + 4 = 40"
+    },
+    {
+      "answer": "3",
+      "prompt": "Solve for x: 3x - 9 = 0"
+    },
+    {
+      "answer": "7",
+      "prompt": "Solve for x: 7x + 1 = 50"
+    },
+    {
+      "answer": "10",
+      "prompt": "Solve for x: x ÷ 2 + 3 = 8"
+    },
+    {
+      "answer": "15",
+      "prompt": "Solve for x: x ÷ 3 - 1 = 4"
+    },
+    {
+      "answer": "12",
+      "prompt": "Solve for x: x ÷ 4 + 2 = 5"
+    },
+    {
+      "answer": "15",
+      "prompt": "Solve for x: x ÷ 5 - 2 = 1"
+    },
+    {
+      "answer": "6",
+      "prompt": "Solve for x: 8 + 2x = 20"
+    },
+    {
+      "answer": "7",
+      "prompt": "Solve for x: 10 + 3x = 31"
+    },
+    {
+      "answer": "0",
+      "prompt": "Solve for x: 4x + 6 = 6"
+    },
+    {
+      "answer": "4",
+      "prompt": "Solve for x: 9x - 4 = 32"
+    },
+    {
+      "answer": "9",
+      "prompt": "Solve for x: 2x + 7 = 25"
+    },
+    {
+      "answer": "7",
+      "prompt": "Solve for x: 5x + 10 = 45"
+    },
+    {
+      "answer": "12",
+      "prompt": "Solve for x: x ÷ 6 + 4 = 6"
+    },
+    {
+      "answer": "9",
+      "prompt": "Solve for x: 3x - 8 = 19"
+    }
+  ],
+  "version": 1
+}

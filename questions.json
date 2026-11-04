@@ -1,0 +1,85 @@
+{
+  "questions": [
+    {
+      "answer": "7",
+      "prompt": "Solve for x: x + 5 = 12"
+    },
+    {
+      "answer": "6",
+      "prompt": "Solve for x: x + 9 = 15"
+    },
+    {
+      "answer": "9",
+      "prompt": "Solve for x: 4 + x = 13"
+    },
+    {
+      "answer": "9",
+      "prompt": "Solve for x: x + 11 = 20"
+    },
+    {
+      "answer": "11",
+      "prompt": "Solve for x: x - 3 = 8"
+    },
+    {
+      "answer": "12",
+      "prompt": "Solve for x: x - 7 = 5"
+    },
+    {
+      "answer": "6",
+      "prompt": "Solve for x: x - 6 = 0"
+    },
+    {
+      "answer": "14",
+      "prompt": "Solve for x: x - 4 = 10"
+    },
+    {
+      "answer": "7",
+      "prompt": "Solve for x: 3x = 21"
+    },
+    {
+      "answer": "8",
+      "prompt": "Solve for x: 5x = 40"
+    },
+    {
+      "answer": "9",
+      "prompt": "Solve for x: 2x = 18"
+    },
+    {
+      "answer": "6",
+      "prompt": "Solve for x: 6x = 36"
+    },
+    {
+      "answer": "7",
+      "prompt": "Solve for x: 7x = 49"
+    },
+    {
+      "answer": "12",
+      "prompt": "Solve for x: x ÷ 2 = 6"
+    },
+    {
+      "answer": "15",
+      "prompt": "Solve for x: x ÷ 3 = 5"
+    },
+    {
+      "answer": "16",
+      "prompt": "Solve for x: x ÷ 4 = 4"
+    },
+    {
+      "answer": "10",
+      "prompt": "Solve for x: x ÷ 5 = 2"
+    },
+    {
+      "answer": "0",
+      "prompt": "Solve for x: x + 8 = 8"
+    },
+    {
+      "answer": "3",
+      "prompt": "Solve for x: 9x = 27"
+    },
+    {
+      "answer": "12",
+      "prompt": "Solve for x: x - 10 = 2"
+    }
+  ],
+  "version": 1
+}
