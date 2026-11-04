@@ -2,7 +2,7 @@
 export const config = {
   // OAuth client ID from Google Cloud Console (see README). While this is
   // left as the placeholder, the sign-in page shows a dev-mode start button.
-  googleClientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
+  googleClientId: "mrvgeometry.github.io/math-arcade/",
 
   // SHA-256 hashes (hex) of teacher email addresses, lowercased. Generate one with:
   //   printf '%s' 'you@school.org' | shasum -a 256
