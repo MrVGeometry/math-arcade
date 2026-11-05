@@ -437,6 +437,22 @@
     return hit ? { piece: hit.object.userData.piece, distance: hit.distance } : null;
   }
 
+  // Every piece along a ray, phased or not, nearest first, each listed once
+  // at the distance the ray first meets it.
+  function pickAll(origin, dir, far) {
+    pickRay.set(origin, dir);
+    pickRay.far = far;
+    const seen = new Set();
+    const out = [];
+    for (const hit of pickRay.intersectObjects(meshes.concat(phasedMeshes), false)) {
+      const piece = hit.object.userData.piece;
+      if (seen.has(piece)) continue;
+      seen.add(piece);
+      out.push({ piece, distance: hit.distance });
+    }
+    return out;
+  }
+
   // Compile every build material up front, so the first piece placed (and
   // the first one broken) does not stall a frame while shaders compile.
   function prewarm(renderer, camera) {
@@ -650,6 +666,7 @@
     unphase,
     highlight,
     pick,
+    pickAll,
     PHASE_TIME,
     damage,
     destroy,

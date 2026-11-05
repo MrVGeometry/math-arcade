@@ -294,8 +294,9 @@
       if (v < 0.03) return;
       switch (name) {
         case 'bow':
-          this.noise(0.09, 0.35 * v, 2500, 'highpass');
-          this.tone(1100, 260, 0.12, 'triangle', 0.22 * v);
+          // A watery whoosh with a rising bloop.
+          this.noise(0.12, 0.28 * v, 1600, 'bandpass');
+          this.tone(380, 1150, 0.11, 'sine', 0.26 * v);
           break;
         case 'scatter':
           this.noise(0.32, 0.7 * v, 900, 'lowpass');

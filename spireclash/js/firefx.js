@@ -1,6 +1,6 @@
 /**
- * Spireclash Dragonbreath fire: each shot throws a cone of flame and
- * scattering embers from the dragon's jaws, and every pellet flies as a
+ * Spireclash Fire Blast fire: each shot throws a cone of flame and
+ * scattering embers from the pouch's mouth, and every pellet flies as a
  * burning streak with a flickering flame trail that bursts where it lands.
  * Built on the shared effect list in combat.js (G.fx.spawn).
  */

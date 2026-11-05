@@ -16,9 +16,14 @@
   const SNAP = 0.75;
   const HEIGHT = 1.8;
   const RADIUS = 0.35;
+  // Defeat bow: hip height the upper body pivots on, and how far it bends.
+  const BOW_HIP = 0.9;
+  const BOW_ANGLE = 0.75;
   // Right-handed stance: the body turns this far (radians) so the left
   // shoulder leads, while head and weapon arm turn back to aim dead ahead.
   const TWIST = 0.32;
+  // Where the Fire Blast pouch rests in the hand (firebag.js).
+  const BAG_Y = -0.6;
   // Shots leave from the right shoulder: this far right of the eye, and
   // at this height above the feet.
   const SHOT_RIGHT = 0.34;
@@ -115,6 +120,7 @@
       this.walkPhase = 0;
       this.deathT = 0;
       this.recoil = 0;
+      this.throwT = 0;
       this.building = false;
       this.liftPiece = null;
       const inv = new THREE.MeshBasicMaterial({ visible: false });
@@ -195,6 +201,26 @@
       SHOT_DIR.divideScalar(len);
       if (G.builds.pick(out, SHOT_DIR, len + 0.1)) return out;
       return out.addScaledVector(SHOT_DIR, len);
+    }
+
+    /**
+     * Firing flourishes. Water Bolt: the gloved hand shakes as the bolt
+     * leaves it. Fire Blast: the pouch is flung forwards, tumbling, and
+     * snaps back to the hand.
+     */
+    animateCast(dt) {
+      const P = this.parts;
+      const r = this.recoil;
+      P.bow.rotation.set(Math.sin(G.now * 75) * 0.22 * r, 0, Math.cos(G.now * 60) * 0.22 * r);
+      this.throwT = Math.max(0, this.throwT - dt);
+      const k = 1 - this.throwT / G.THROW_TIME;
+      const out = this.throwT > 0 ? Math.sin(Math.PI * k) : 0;
+      // Out along the arm and lofted a little upwards (-z).
+      P.staff.position.y = BAG_Y - out * 0.75;
+      P.staff.position.z = -out * 0.18;
+      P.staff.rotation.x = this.throwT > 0 ? -Math.PI * 2 * k : 0;
+      // The arm flicks forwards and down with the throw.
+      if (this.weaponIdx === 1) P.armR.rotation.x -= out * 0.35;
     }
 
     muzzle(out) {
@@ -376,15 +402,45 @@
       return impact;
     }
 
+    /**
+     * Defeat: rather than falling over, the knight takes a courtly bow.
+     * The upper body bends forward at the hip while the legs stay planted,
+     * the head dips, the weapon hand sweeps to the waist and the shield arm
+     * swings out behind.
+     */
+    animateBow(dt) {
+      const P = this.parts;
+      this.deathT += dt;
+      // Ease out over about half a second, then hold the bow.
+      const t = Math.min(1, this.deathT * 2);
+      const f = 1 - (1 - t) * (1 - t);
+      const a = BOW_ANGLE * f;
+      // The root pivots at the feet, so shift it to keep the hip fixed.
+      const back = BOW_HIP * Math.sin(a);
+      this.model.position.set(
+        this.pos.x + back * Math.sin(this.yaw),
+        this.pos.y + BOW_HIP * (1 - Math.cos(a)),
+        this.pos.z + back * Math.cos(this.yaw)
+      );
+      this.model.rotation.set(-a, this.yaw, 0);
+      // Counter the bend so the legs stay upright under the hip.
+      P.legL.rotation.x = a;
+      P.legR.rotation.x = a;
+      P.armR.rotation.set(1.0 * f, 0, -0.9 * f);
+      P.armL.rotation.set(-0.3 * f, 0, -0.6 * f);
+      P.head.rotation.set(-0.35 * f, 0, 0);
+      P.potion.visible = false;
+      P.ring.visible = false;
+      G.updateCape(P.cape, dt, G.now, { f: 0, side: 0, air: false, legL: a, legR: a });
+      G.updateTabard(P.tabard, dt, G.now, { fwd: 0, side: 0, air: false, legL: a, legR: a });
+      this.model.updateMatrixWorld(true);
+    }
+
     animate(dt) {
       const P = this.parts;
       this.model.position.copy(this.pos);
       if (!this.alive) {
-        this.deathT += dt;
-        const f = Math.min(1, this.deathT * 2.4);
-        this.model.rotation.set(f * Math.PI * 0.48, this.yaw, 0);
-        P.ring.visible = false;
-        this.model.updateMatrixWorld(true);
+        this.animateBow(dt);
         return;
       }
       P.ring.visible = true;
@@ -411,11 +467,12 @@
         P.armR.rotation.set(aim, twist, 0);
         P.armL.rotation.set(aim + 0.35, twist, 0.15);
       } else {
-        // Weapon shouldered on the right, the left hand reaching across to
-        // steady it.
+        // Spell hand or pouch held out on the right, the left arm raised
+        // in a loose guard.
         P.armR.rotation.set(aim, twist, 0);
-        P.armL.rotation.set(aim - 0.1, twist - 0.9, 0.2);
+        P.armL.rotation.set(0.9 + s * 0.3, twist - 0.4, 0.15);
       }
+      this.animateCast(dt);
       P.head.rotation.set(this.pitch * 0.6, twist, 0);
       // Cape billow: forward speed lifts it out behind, strafing swings it.
       const cy = Math.cos(this.yaw - twist);
@@ -437,6 +494,8 @@
       });
       const wand = !!this.wandOut;
       P.bow.visible = !drinking && !wand && this.weaponIdx === 0;
+      // The glove replaces the armoured fist rather than being held in it.
+      P.armR.userData.hand.visible = !P.bow.visible;
       P.staff.visible = !drinking && !wand && this.weaponIdx === 1;
       P.wand.visible = !drinking && wand;
       P.potion.visible = drinking;

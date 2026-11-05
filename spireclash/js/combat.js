@@ -1,7 +1,8 @@
 /**
  * Spireclash combat: the two weapons, hitscan shots, damage to duellists and
- * pieces, the healing draught, and the short-lived visual effects (bolts,
- * sparks and falling rubble).
+ * pieces, the healing draught, and the short-lived visual effects (tracers,
+ * sparks and falling rubble). The water bolts and fire live in waterfx.js
+ * and firefx.js.
  */
 (function () {
   'use strict';
@@ -10,7 +11,8 @@
   G.WEAPONS = [
     {
       id: 'bow',
-      name: 'Runebow',
+      name: 'Water Bolt',
+      reloadText: 'Recharging water magic',
       dmg: 34,
       head: 2,
       interval: 0.36,
@@ -27,7 +29,8 @@
     },
     {
       id: 'scatter',
-      name: 'Dragonbreath',
+      name: 'Fire Blast',
+      reloadText: 'Recharging fire magic',
       dmg: 11,
       head: 1.5,
       interval: 0.85,
@@ -44,6 +47,9 @@
     },
   ];
   G.DRAUGHT = { time: 2, heal: 50 };
+  // How long the Fire Blast pouch takes to fly out and come back.
+  const THROW_TIME = 0.42;
+  G.THROW_TIME = THROW_TIME;
 
   const ray = new THREE.Raycaster();
   const chars = [];
@@ -129,7 +135,6 @@
   function fire(shooter, origin, dir, spread, fxFrom) {
     const w = G.WEAPONS[shooter.weaponIdx];
     const totals = new Map();
-    const colour = w.id === 'bow' ? shooter.pal.glow : 0xff9a3c;
     for (let n = 0; n < w.pellets; n++) {
       perturb(dir, spread, tmpD);
       const hit = raycast(origin, tmpD, w.range, shooter);
@@ -139,15 +144,15 @@
       const showSpark = () => {
         if (spark) G.fx.sparks(end, spark[0], spark[1]);
       };
-      // The runebow looses a visible bolt (sparks when it lands, and it
-      // sticks where it hits cover); other weapons draw a tracer.
+      // Water Bolt looses a small bolt of water that splashes where it
+      // lands; Fire Blast throws every pellet as a burning streak; anything
+      // else draws a tracer.
       if (w.id === 'bow') {
-        G.fx.bolt(fxFrom, end, colour, shooter.pal.cloth, showSpark, !!hit && !hit.char);
+        G.fx.waterBolt(fxFrom, end, showSpark);
       } else if (w.id === 'scatter') {
-        // Dragonbreath: every pellet a burning streak of fire.
         G.fx.firePellet(fxFrom, end, showSpark);
       } else {
-        G.fx.tracer(fxFrom, end, colour, w.width);
+        G.fx.tracer(fxFrom, end, 0xffffff, w.width);
         showSpark();
       }
       if (!hit) continue;
@@ -182,8 +187,10 @@
     spread *= o.spreadMul || 1;
     fire(ch, origin, dir, spread, fxFrom);
     ch.recoil = 1;
+    // Fire Blast throws its pouch out and back (see Character.animate).
+    if (w.id === 'scatter') ch.throwT = THROW_TIME;
     G.sound.play(w.sound, ch.pos);
-    G.fx.flash(fxFrom, w.id === 'bow' ? ch.pal.glow : 0xff8a2a);
+    G.fx.flash(fxFrom, w.id === 'bow' ? 0x4fc8ff : 0xff8a2a);
     if (w.id === 'scatter') G.fx.fireBlast(fxFrom, dir);
     if (ch.ammo[idx] === 0) startReload(ch);
     return true;
@@ -363,94 +370,6 @@
     });
   }
 
-  /* Crossbow bolts ---------------------------------------------------------- */
-
-  // A bolt built along +z (head forwards), matching the one on the runebow
-  // but a little larger so it reads in flight. Geometry and the wood and
-  // steel are shared; fletching materials are cached per colour.
-  const BOLT_LEN = 0.6;
-  const BOLT_SPEED = 110;
-  const boltGeo = (() => {
-    const shaft = new THREE.CylinderGeometry(0.011, 0.011, BOLT_LEN, 6);
-    shaft.rotateX(Math.PI / 2);
-    const head = new THREE.ConeGeometry(0.024, 0.08, 4);
-    head.rotateX(Math.PI / 2);
-    head.translate(0, 0, BOLT_LEN / 2 + 0.04);
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0.05);
-    shape.lineTo(0.03, 0.035);
-    shape.lineTo(0.024, -0.05);
-    shape.lineTo(0, -0.05);
-    const vane = new THREE.ShapeGeometry(shape);
-    vane.rotateX(Math.PI / 2);
-    vane.translate(0, 0, -BOLT_LEN / 2 + 0.07);
-    return { shaft, head, vane };
-  })();
-  const boltWood = new THREE.MeshStandardMaterial({ color: 0x5a3a24, roughness: 0.7 });
-  const boltSteel = new THREE.MeshStandardMaterial({ color: 0xc8ccd2, metalness: 0.8, roughness: 0.35 });
-  const fletchMats = {};
-
-  function boltMesh(fletch) {
-    if (!fletchMats[fletch]) {
-      fletchMats[fletch] = new THREE.MeshStandardMaterial({ color: fletch, roughness: 0.9, side: THREE.DoubleSide });
-    }
-    const g = new THREE.Group();
-    g.add(new THREE.Mesh(boltGeo.shaft, boltWood), new THREE.Mesh(boltGeo.head, boltSteel));
-    for (let i = 0; i < 3; i += 1) {
-      const v = new THREE.Mesh(boltGeo.vane, fletchMats[fletch]);
-      v.rotation.z = (i * Math.PI * 2) / 3 + Math.PI / 2;
-      g.add(v);
-    }
-    return g;
-  }
-
-  /**
-   * A bolt flying from a to b with a faint glowing trail. onArrive runs as
-   * it lands; with stick, it stays lodged where it hit for a moment.
-   */
-  function bolt(a, b, glow, fletch, onArrive, stick) {
-    const from = a.clone();
-    const to = b.clone();
-    const dist = from.distanceTo(to);
-    const dir = to.clone().sub(from).normalize();
-    const flight = Math.max(0.04, dist / BOLT_SPEED);
-    const lodged = 1.4;
-    const m = boltMesh(fletch);
-    m.position.copy(from);
-    m.lookAt(to);
-    const trailMat = new THREE.MeshBasicMaterial({
-      color: glow,
-      transparent: true,
-      opacity: 0.55,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const trail = new THREE.Mesh(tracerGeo, trailMat);
-    trail.position.copy(from);
-    trail.lookAt(from.clone().sub(dir));
-    trail.scale.set(0.012, 0.012, 0.01);
-    add([m, trail], trailMat, flight + (stick ? lodged : 0.15), (e, f) => {
-      const k = Math.min(1, e.t / flight);
-      if (k < 1) {
-        m.position.lerpVectors(from, to, k);
-        trail.position.copy(m.position).addScaledVector(dir, -BOLT_LEN / 2);
-        trail.scale.z = Math.max(0.01, Math.min(2, dist * k));
-        return;
-      }
-      if (!e.arrived) {
-        e.arrived = true;
-        if (onArrive) onArrive();
-        // Bury the head in what it hit, or vanish if it hit nothing solid.
-        m.position.copy(to).addScaledVector(dir, -BOLT_LEN / 2 + 0.06);
-        m.visible = !!stick;
-      }
-      const after = e.t - flight;
-      trailMat.opacity = Math.max(0, 0.55 * (1 - after / 0.15));
-      // A lodged bolt shrinks away over its last moment.
-      if (stick) m.scale.setScalar(Math.max(0.001, Math.min(1, (lodged - after) / 0.3)));
-    });
-  }
-
   function update(dt) {
     for (let i = live.length - 1; i >= 0; i--) {
       const e = live[i];
@@ -481,7 +400,6 @@
     // materials, all disposed at the end), lifetime and per-frame step.
     spawn: add,
     tracer,
-    bolt,
     flash,
     sparks,
     debris,

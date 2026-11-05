@@ -73,6 +73,8 @@
     const hand = new THREE.Group();
     hand.scale.set(1.2, 1, 1.2);
     arm.add(body, hand);
+    // Kept so a weapon worn over the hand (the Water Bolt glove) can hide it.
+    arm.userData.hand = hand;
     part(taper(0.05, 0.044, 0.62, 12), M.mail, 0, -0.32, 0, body);
     // Upper arm: a biceps swelling at the front and a broader triceps
     // behind, set a little higher, rising right up under the pauldron.

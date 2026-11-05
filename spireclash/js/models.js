@@ -232,11 +232,11 @@
   }
 
   function buildWeapons(M, pal, armR) {
-    // Runebow (runebow.js): a heavy crossbow held in the right hand.
-    const { bow, bowTip } = G.buildRunebow(M, pal, armR);
+    // Water Bolt (waterbolt.js): a heavy crossbow loosing bolts of water.
+    const { bow, bowTip } = G.buildWaterBolt(M, armR);
 
-    // Dragonbreath (dragonbreath.js): a dragon-headed pump shotgun.
-    const { staff, staffTip } = G.buildDragonbreath(M, armR);
+    // Fire Blast (firebag.js): a magic pouch that breathes fire.
+    const { staff, staffTip } = G.buildFireBag(M, armR);
 
     const potion = new THREE.Group();
     potion.position.y = -0.64;
