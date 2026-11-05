@@ -1,7 +1,5 @@
-import { config } from "./config.js";
 import { fetchQuestions, isValidQuestion } from "./questions.js";
 import { initPage } from "./ui.js";
-import { isLocalMachine } from "./auth.js";
 
 // Each game reads its own question file. Edits are kept as a draft per file
 // in this browser until exported.
@@ -231,8 +229,6 @@ function buildSetPicker() {
 async function start() {
   if (!initPage({ teacher: true })) return;
   buildSetPicker();
-  document.getElementById("open-warning").hidden =
-    !(isLocalMachine() && config.googleClientId.startsWith("YOUR_"));
   document.getElementById("add").addEventListener("click", addBlank);
   document.getElementById("generate").addEventListener("click", generate);
   document.getElementById("export").addEventListener("click", exportFile);

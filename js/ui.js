@@ -13,6 +13,9 @@ export function initPage(options) {
   const teacherLink = document.querySelector("[data-teacher-link]");
   if (teacherLink) teacherLink.hidden = !session.teacher;
 
+  const playerEl = document.querySelector("[data-player]");
+  if (playerEl) playerEl.textContent = session.username ?? "";
+
   const mute = document.querySelector("[data-mute]");
   if (mute) {
     const render = () => {

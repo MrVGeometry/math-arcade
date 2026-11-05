@@ -14,13 +14,19 @@
 <main class="screen center">
   <h1 class="title">MATH<br>ARCADE</h1>
   <p class="subtitle blink">INSERT COIN TO PLAY</p>
-  <div class="panel">
-    <p>Sign in with Google to start</p>
-    <div id="google-button"></div>
-    <button id="dev-start" class="btn" type="button" hidden>Press start</button>
+  <form id="login" class="panel login">
+    <p>Enter your username and PIN</p>
+    <label>Username
+      <input id="login-name" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+    </label>
+    <label><span id="login-secret-label">PIN</span>
+      <input id="login-secret" type="password" inputmode="numeric" autocomplete="current-password" required>
+    </label>
+    <button class="btn" type="submit">Press start</button>
+    <button id="guest-start" class="btn small ghost" type="button" hidden>Play as guest</button>
     <p id="signin-note" class="note" role="status"></p>
-  </div>
-  <p class="fine">We don't save your name, email, picture or anything else from your Google account. Signing in just unlocks the arcade.</p>
+  </form>
+  <p class="fine">Your teacher gave you a username and PIN. Your answers and scores are saved under your username so your teacher can see how you're doing. Nothing else about you is saved. Guest games aren't saved at all.</p>
 </main>
 <script type="module" src="js/signin.js"></script>
 </body>

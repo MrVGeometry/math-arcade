@@ -21,7 +21,75 @@
 <main class="screen">
   <h1 class="heading">TEACHER CONTROLS</h1>
   <div class="teacher">
-    <p id="open-warning" class="warning" hidden>Local test mode: you can see this page because the site is running on your own computer. On the live site only the teacher emails in js/config.js can open it. See the README.</p>
+    <section class="panel">
+      <h2>CLASS RESULTS</h2>
+      <div class="toolbar">
+        <label class="wide">Class <select id="class-filter"><option value="">All classes</option></select></label>
+        <button id="results-refresh" class="btn small" type="button">Refresh</button>
+        <button id="roster-csv" class="btn small ghost" type="button">Download logins</button>
+        <button id="roster-print" class="btn small ghost" type="button">Print login cards</button>
+      </div>
+      <p id="results-status" class="note" role="status">Loading...</p>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr><th>Username</th><th>PIN</th><th>Class</th><th>Answered</th><th>Correct</th><th>Tic-tac-toe W-D-L</th><th>Draconis best</th><th>Astro best</th><th>Last played</th></tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+      <p class="note">Click a username to see that student's toughest questions and recent answers.</p>
+    </section>
+
+    <section class="panel">
+      <h2>TOUGHEST QUESTIONS</h2>
+      <p class="note">The questions this class has missed most, across every game.</p>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr><th>Question</th><th>Answer</th><th>Times missed</th><th>Correct</th><th>Students who missed it</th></tr>
+          </thead>
+          <tbody id="struggles-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="student-detail" class="panel" hidden>
+      <h2>STUDENT: <span id="detail-name"></span></h2>
+      <p class="note">Questions missed most</p>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr><th>Question</th><th>Answer</th><th>Last wrong answer</th><th>Missed</th><th>Right</th></tr>
+          </thead>
+          <tbody id="detail-missed"></tbody>
+        </table>
+      </div>
+      <p class="note">Last 25 answers</p>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr><th>When</th><th>Game</th><th>Question</th><th>Typed</th><th>Result</th></tr>
+          </thead>
+          <tbody id="detail-recent"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>CREATE STUDENT LOGINS</h2>
+      <p class="note">Usernames are an adjective starting with your letter, an animal, then a number counting up from your starting number. For example, L and 30 give names like luckyotter30, loyalpanda31 and lunarfox32. Each student gets a random 4-digit PIN.</p>
+      <div class="toolbar">
+        <label>Letter <input id="roster-letter" maxlength="1" value="L"></label>
+        <label>Start at <input id="roster-start" type="number" min="0" value="30"></label>
+        <label>How many <input id="roster-count" type="number" min="1" max="60" value="25"></label>
+        <label class="wide">Class name (optional) <input id="roster-class" placeholder="e.g. Period 3"></label>
+        <button id="roster-create" class="btn small alt" type="button">Create logins</button>
+      </div>
+      <p id="roster-status" class="note" role="status"></p>
+    </section>
+
+    <h2 class="heading">QUESTION EDITOR</h2>
 
     <section class="panel">
       <h2>QUESTION SET</h2>
@@ -56,6 +124,8 @@
     </section>
   </div>
 </main>
+<div id="print-cards" class="print-cards"></div>
 <script type="module" src="js/teacher.js"></script>
+<script type="module" src="js/dashboard.js"></script>
 </body>
 </html>

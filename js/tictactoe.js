@@ -1,6 +1,7 @@
 import { config } from "./config.js";
 import { askQuestion, loadQuestions } from "./questions.js";
 import { play } from "./sound.js";
+import { recordGameEnd } from "./firebase.js";
 import { initPage } from "./ui.js";
 
 const human = "X";
@@ -102,6 +103,8 @@ function render() {
 function endRound(result, message, sound) {
   over = true;
   score[result] += 1;
+  const outcome = { cpu: "losses", draw: "draws", you: "wins" };
+  recordGameEnd({ result: outcome[result] });
   setStatus(message);
   play(sound);
   againButton.hidden = false;

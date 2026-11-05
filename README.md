@@ -22,40 +22,68 @@ cd math-arcade
 python3 -m http.server 8080
 ```
 
-Then open http://localhost:8080. Until a Google client ID is set, the sign-in page shows
-a **Press start** button (dev mode) so you can try everything.
+Then open http://localhost:8080 and sign in with a student login or the teacher
+account. Scores from local testing are saved to the real database, so test with a
+spare student login.
 
-## Set up Google sign-in
+## Student and teacher logins (Firebase)
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/), create a project.
-2. **APIs & Services > OAuth consent screen**: set it up (External, or Internal if your
-   school uses Google Workspace and only school accounts should get in). Only the basic
-   `openid`/`email`/`profile` scopes are used.
-3. **APIs & Services > Credentials > Create credentials > OAuth client ID**, type
-   **Web application**. Under **Authorized JavaScript origins** add
-   `http://localhost` and `http://localhost:8080`, plus your live URL (e.g.
-   `https://yourname.github.io`). No redirect URI is needed.
-4. Paste the client ID into `googleClientId` in `js/config.js`.
+Logins and results live in the Firebase project `math-arcade-mrv` (free Spark plan).
+Its config is in `js/config.js`. That block is public by design: `firestore.rules`
+is what protects the data.
 
-School Workspace accounts: your Google admin may have to allow the app before students
-can sign in.
+- **Students** sign in with a username and 4-digit PIN that you create on the
+  Teacher page. Behind the scenes the username becomes
+  `username@students.example.com` and the password is `pin-` plus the PIN, because
+  Firebase only does email + password logins.
+- **The teacher** types their email and password into the same box. An `@` in the
+  username box tells the site it's the teacher.
 
-## Make yourself the teacher
+- **Guests** press **Play as guest** and skip logging in. They can play every
+  game, but nothing is saved and they don't appear on the dashboard. Turn this off
+  with `allowGuests: false` in `js/config.js`.
 
-Hash your email (lowercase) and put the result in `teacherEmailHashes` in
-`js/config.js`:
+### One-time setup
 
-```sh
-printf '%s' 'you@school.org' | shasum -a 256
-```
+1. Firebase console > **Authentication > Sign-in method**: turn on
+   **Email/Password** (leave the email link option off).
+2. **Authentication > Users > Add user**: your email and a strong password.
+   Copy the **User UID** from the list.
+3. Paste that UID into `teacherUid` in `js/config.js`, and in place of
+   `PASTE_TEACHER_UID_HERE` in `firestore.rules`.
+4. **Firestore Database > Rules**: paste the whole of `firestore.rules`, then
+   **Publish**. Do this again whenever the rules file changes.
+5. **Authentication > Settings > Authorized domains**: add your live domain (e.g.
+   `yourname.github.io`). `localhost` is there already.
 
-A hash is used so your email doesn't appear in the public source. Only accounts on
-this list see the Teacher button and page. While the list is empty, nobody does.
+### Making student logins
 
-Before a Google client ID is set, the sign-in page runs in dev mode with a plain start
-button. That button gives teacher access only when the site is running on your own
-computer (`localhost` or an opened file), so you can try the teacher tools while setting
-up. On the live site, dev mode signs everyone in as a student.
+Teacher page > **Create student logins**. Pick a letter, a starting number and how
+many. Usernames are an adjective starting with that letter, an animal, and a number
+counting up from the start, e.g. L and 30 give `luckyotter30`, `loyalpanda31`. Word
+lists are in `js/words.js`.
+
+The class results table shows every login with its PIN. **Download logins** saves a
+CSV and **Print login cards** prints cut-out cards, for the class picked in the
+filter. Keep your own list matching usernames to real names: Firebase never sees
+student names.
+
+A forgotten PIN can be looked up in the results table. To remove a student, delete
+them in **Authentication > Users** and their record under `students` in
+**Firestore Database**.
+
+### What gets saved
+
+For each student, under `students/{uid}`:
+
+- `attempts`: one entry per question answered (game, question, correct answer,
+  what they typed, right or wrong, time).
+- `summary/all`: running totals for the dashboard (right and wrong per game and
+  per question, best scores, tic-tac-toe wins/draws/losses, last played).
+
+The dashboard reads the student list and summaries (one read per student), so it
+stays well inside the free daily quota. A student's recent answers are read only
+when you click their name. The teacher's own play is never saved.
 
 ## Change the questions
 
@@ -69,16 +97,14 @@ You can also edit the files by hand. Each entry is `{ "prompt": ..., "answer": .
 
 ## Privacy
 
-- Google's sign-in token is read in the browser only to check whether the person is a
-  teacher, then discarded. Nothing is sent to any server of ours (there isn't one).
-- The only thing kept is a `{ "teacher": true/false }` flag in `sessionStorage`,
-  which disappears when the tab closes. Sound on/off and the teacher draft live in
+- Students sign in with a made-up username and PIN. No names, emails or other
+  personal details are stored. Only you know who each username belongs to.
+- Answers and scores are stored in Firebase (Google) under that username. Only the
+  teacher account can read them. Students can add their own results but can't read
+  or change anyone else's.
+- The sign-in lasts until the tab closes, so the next student on a shared computer
+  starts signed out. Sound on/off and the teacher's question draft live in
   `localStorage`.
-- Google itself still knows that the account signed in to this site.
-
-The sign-in gate and teacher check run in the browser, so a tech-savvy student could get
-around them. That's acceptable here: the questions are public anyway, and changing them
-for everyone requires pushing to the repo.
 
 ## Tuning
 
@@ -129,5 +155,7 @@ sheets.
 Create a page that includes the same session guard script and top bar, call
 `initPage()` from `js/ui.js`, then `await loadQuestions(file)` once and
 `await askQuestion({ source: file })` whenever a move needs an answer (it resolves
-`true` or `false`). Add a card for it in `arcade.html`, and add the file to
+`true` or `false`). Answers are saved for the dashboard automatically. When a game
+ends, call `recordGameEnd({ score })` from `js/firebase.js` (add `result: "wins"`
+or `"losses"` if it has one). Add a card for it in `arcade.html`, and add the file to
 `questionSets` in `js/teacher.js` so teachers can edit it.

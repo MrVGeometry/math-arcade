@@ -3,6 +3,7 @@
 // short shield, and a right answer also earns bonus points and full fire.
 import { askQuestion, loadQuestions } from "../questions.js";
 import { play } from "../sound.js";
+import { recordGameEnd } from "../firebase.js";
 import { initPage } from "../ui.js";
 import {
   createFireball,
@@ -192,6 +193,7 @@ function updatePlaying(dt) {
   if (game.round.time >= roundSeconds) {
     setPhase("won");
     play("win");
+    recordGameEnd({ result: "wins", score: game.score });
     return;
   }
   if (game.round.time >= game.round.nextQuestion) runQuestion();
@@ -207,6 +209,7 @@ function update(dt) {
     if (game.deaths >= 3) {
       setPhase("over");
       play("lose");
+      recordGameEnd({ result: "losses", score: game.score });
     } else {
       setPhase("ready");
     }

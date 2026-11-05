@@ -1,12 +1,14 @@
-// The only thing kept after sign-in is this flag in sessionStorage. No name,
-// email, picture or token from the Google account is stored. Closing the tab
-// ends the session.
+// The page guard reads this flag in sessionStorage. Firebase keeps its own
+// sign-in in sessionStorage too, so closing the tab ends both.
+import { config } from "./config.js";
+import { auth, isTeacherUid, logOut } from "./firebase.js";
+
 const sessionKey = "mathArcadeSession";
 
-export function startSession(isTeacher) {
+export function startSession({ guest = false, teacher, username }) {
   sessionStorage.setItem(
     sessionKey,
-    JSON.stringify({ teacher: Boolean(isTeacher) }),
+    JSON.stringify({ guest, teacher: Boolean(teacher), username }),
   );
 }
 
@@ -15,6 +17,15 @@ export function getSession() {
     return JSON.parse(sessionStorage.getItem(sessionKey));
   } catch {
     return null;
+  }
+}
+
+export async function endSession() {
+  sessionStorage.removeItem(sessionKey);
+  try {
+    await logOut();
+  } finally {
+    location.replace("index.html");
   }
 }
 
@@ -28,19 +39,17 @@ export function requireSession({ teacher = false } = {}) {
     location.replace("arcade.html");
     return null;
   }
+  // Guests have no Firebase sign-in. Once guest play is switched off, any
+  // guest still in a tab is sent back to the sign-in page.
+  if (session.guest) {
+    if (!config.allowGuests) endSession();
+    return session;
+  }
+  // If the Firebase sign-in has gone (or the flag was hand-edited), start
+  // over, so scores are never silently lost.
+  auth.authStateReady().then(() => {
+    const user = auth.currentUser;
+    if (!user || (session.teacher && !isTeacherUid(user.uid))) endSession();
+  });
   return session;
-}
-
-// True when the site is running on this computer (a local server or an
-// opened file), never on the live website.
-export function isLocalMachine() {
-  return (
-    location.protocol === "file:" ||
-    ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)
-  );
-}
-
-export function endSession() {
-  sessionStorage.removeItem(sessionKey);
-  location.replace("index.html");
 }

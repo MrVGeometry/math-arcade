@@ -4,6 +4,7 @@
 // asks one more for a launch bonus.
 import { askQuestion, loadQuestions } from "../questions.js";
 import { play } from "../sound.js";
+import { recordGameEnd } from "../firebase.js";
 import { initPage } from "../ui.js";
 import { loadArt, mirrorSheet } from "./art.js";
 import { createEnemy, isStunned, updateEnemy } from "./enemies.js";
@@ -245,6 +246,7 @@ function update(dt) {
     } else {
       play("win");
       setPhase("won");
+      recordGameEnd({ result: "wins", score: game.score });
     }
   }
   if (game.phase === "won" && start && game.phaseTime > 1.5) {

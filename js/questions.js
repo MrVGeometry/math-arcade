@@ -1,5 +1,6 @@
 // Loads the question bank and runs the "answer to move" modal. Any game can
 // call askQuestion() and await a true/false result.
+import { recordAttempt } from "./firebase.js";
 import { play } from "./sound.js";
 
 // Question banks keyed by file, each with its own shuffled deck.
@@ -128,6 +129,12 @@ export function askQuestion({
         : `Nope! The answer is ${question.answer}`;
       feedback.classList.add(correct ? "good" : "bad");
       play(correct ? "correct" : "wrong");
+      recordAttempt({
+        answer: question.answer,
+        correct,
+        given: input.value,
+        prompt: question.prompt,
+      });
       setTimeout(
         () => {
           dialog.close();
