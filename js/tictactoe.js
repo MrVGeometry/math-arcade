@@ -72,11 +72,14 @@ function bestMoves(cells) {
   return scored.filter((m) => m.value === top).map((m) => m.i);
 }
 
+// Usually plays the best move. Each move has a config.aiMistakeChance chance
+// of being a deliberate mistake instead: any square that isn't a best one.
+// Every move rolls separately, so mistakes can come back to back.
 function chooseCpuMove() {
-  const options =
-    Math.random() < config.aiOptimalMoveChance
-      ? bestMoves(board)
-      : emptyCells(board);
+  const best = bestMoves(board);
+  const blunder = Math.random() < config.aiMistakeChance;
+  const worse = emptyCells(board).filter((i) => !best.includes(i));
+  const options = blunder && worse.length > 0 ? worse : best;
   return options[Math.floor(Math.random() * options.length)];
 }
 
@@ -100,13 +103,18 @@ function render() {
   });
 }
 
-function endRound(result, message, sound) {
+// Shows the result, then a question that must be solved before the next
+// round can start.
+async function endRound(result, message, sound) {
   over = true;
   score[result] += 1;
   const outcome = { cpu: "losses", draw: "draws", you: "wins" };
   recordGameEnd({ result: outcome[result] });
   setStatus(message);
   play(sound);
+  render();
+  await wait(1400);
+  await askQuestion({ label: "Solve it to play again" });
   againButton.hidden = false;
   againButton.focus();
 }
@@ -127,8 +135,8 @@ function checkEnd() {
   return false;
 }
 
-async function cpuTurn(prefix) {
-  setStatus(`${prefix}CPU is thinking...`);
+async function cpuTurn() {
+  setStatus("CPU is thinking...");
   render();
   await wait(650);
   board[chooseCpuMove()] = cpu;
@@ -141,12 +149,9 @@ async function onCellClick(index) {
   busy = true;
   render();
 
-  const correct = await askQuestion({ label: "Solve to place your X" });
-  if (correct) {
-    board[index] = human;
-    play("place");
-  }
-  if (!checkEnd()) await cpuTurn(correct ? "" : "Missed! ");
+  board[index] = human;
+  play("place");
+  if (!checkEnd()) await cpuTurn();
 
   busy = false;
   render();

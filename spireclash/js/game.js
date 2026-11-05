@@ -19,6 +19,8 @@
   const WAND_CD = 0.2;
   // How long the player's wand keeps a piece phased.
   const WAND_PHASE = 2;
+  // Seconds before box in can be used again.
+  const BOX_CD = 10;
   const KB = G.keybinds;
   const TOUCH = G.touch;
   const V1 = new THREE.Vector3();
@@ -140,6 +142,8 @@
   });
 
   window.addEventListener('keydown', (e) => {
+    // The question box needs the keyboard to itself.
+    if (state === 'question') return;
     // Stop bound keys (Tab, slash and the like) doing browser things mid-duel.
     if (e.code === 'Space' || e.code.startsWith('Arrow') || (locked && KB.actionFor(e.code))) e.preventDefault();
     keys[e.code] = true;
@@ -237,18 +241,47 @@
     ctrl.wandCd = Math.max(ctrl.wandCd, 0.15);
   }
 
-  // The piece the wand would act on, or a reason it cannot.
+  // How far the player's feet are from a piece's box (0 when inside it).
+  function feetDistance(p) {
+    const b = p.aabb;
+    const f = player.pos;
+    const dx = Math.max(b.min.x - f.x, 0, f.x - b.max.x);
+    const dy = Math.max(b.min.y - f.y, 0, f.y - b.max.y);
+    const dz = Math.max(b.min.z - f.z, 0, f.z - b.max.z);
+    return Math.hypot(dx, dz, dy);
+  }
+
+  // Why the wand cannot act on a piece it is aimed at, or null if it can.
+  function wandRefusal(p, distance) {
+    V1.copy(camera.position).addScaledVector(CAM_DIR, distance);
+    if (V1.distanceTo(EYE) > WAND_RANGE) return 'Too far for the wand';
+    if (p.fixed) return 'The bulwark resists the wand';
+    if (p.owner !== 'player') return 'The wand only works on your own pieces';
+    return null;
+  }
+
+  // The piece the wand would act on, or a reason it cannot. Of all your
+  // pieces under the crosshair, the one nearest you wins (the one you are
+  // standing on above all), so a stair underfoot is picked over the floor
+  // it overlaps, whichever the ray happens to meet first.
   function wandTarget() {
     camera.getWorldDirection(CAM_DIR);
-    const hit = G.builds.pick(camera.position, CAM_DIR, 80);
-    if (!hit) return { why: 'Aim the wand at one of your pieces' };
-    const p = hit.piece;
+    const hits = G.builds.pickAll(camera.position, CAM_DIR, 80);
+    if (!hits.length) return { why: 'Aim the wand at one of your pieces' };
     player.eye(EYE);
-    V1.copy(camera.position).addScaledVector(CAM_DIR, hit.distance);
-    if (V1.distanceTo(EYE) > WAND_RANGE) return { why: 'Too far for the wand' };
-    if (p.fixed) return { why: 'The bulwark resists the wand' };
-    if (p.owner !== 'player') return { why: 'The wand only works on your own pieces' };
-    return { piece: p };
+    let best = null;
+    let bestScore = Infinity;
+    for (const h of hits) {
+      if (wandRefusal(h.piece, h.distance)) continue;
+      const score = h.piece === player.groundPiece ? -1 : feetDistance(h.piece);
+      // Ties go to the piece the ray meets first.
+      if (score < bestScore - 0.05) {
+        best = h.piece;
+        bestScore = score;
+      }
+    }
+    if (best) return { piece: best };
+    return { why: wandRefusal(hits[0].piece, hits[0].distance) };
   }
 
   function handleWand() {
@@ -337,8 +370,13 @@
   // One press: walls on every open side of the player's cell. Once all four
   // stand, the next press caps the box with a floor overhead.
   function boxIn() {
-    // Its own short cooldown, so it works the same from either mode.
-    if (!player.alive || G.now - (ctrl.boxAt || -1) < 0.2) return;
+    // Its own cooldown, so it works the same from either mode.
+    if (!player.alive) return;
+    const wait = boxWait();
+    if (wait > 0) {
+      showNote(`Box in recharging: ${Math.ceil(wait)}s`);
+      return;
+    }
     const ci = Math.floor(player.pos.x / C);
     const cj = Math.floor(player.pos.z / C);
     const k = buildLevel();
@@ -357,6 +395,12 @@
     }
     ctrl.boxAt = G.now;
     stats.builds += placed;
+  }
+
+  // Seconds until box in is ready again (0 once it is).
+  function boxWait() {
+    if (ctrl.boxAt === undefined) return 0;
+    return Math.max(0, BOX_CD - (G.now - ctrl.boxAt));
   }
 
   // The stair the player is climbing: the one underfoot, or the one just
@@ -487,8 +531,14 @@
         return { type: 'floor', i: ai, j: aj, k };
       }
       default: {
-        if (pitch < -0.4) return { type: 'roof', i: ai, j: aj, k };
-        return { type: 'roof', i: ci, j: cj, k: k + 1 };
+        // Looking up: a cap over the player's head.
+        if (pitch > 0.6) return { type: 'roof', i: ci, j: cj, k: k + 1 };
+        // Otherwise the floor nearest the player: their own square, right
+        // underfoot, then the square faced. A held build fans out from
+        // there as the aim turns (see dragRoof).
+        const own = { type: 'roof', i: ci, j: cj, k };
+        if (!G.builds.get(own) && G.builds.canPlace(own)) return own;
+        return { type: 'roof', i: ai, j: aj, k };
       }
     }
   }
@@ -539,19 +589,44 @@
     return next;
   }
 
+  // Where a held spire build goes next: the square beside the last spire
+  // on the side the aim turns to, or the square beyond it when the aim
+  // lifts (back towards the player when it drops); null until the aim
+  // has turned far enough. Stays on the last spire's level.
+  function dragRoof(drag) {
+    const s = drag.spec;
+    const dp = ctrl.pitch - drag.pitch;
+    // Turning right lowers the yaw.
+    const dy = drag.yaw - ctrl.yaw;
+    const f = G.forwardFromYaw(ctrl.yaw);
+    const d = G.cardinal(f.x, f.z);
+    let step = null;
+    if (Math.abs(dp) >= DRAG_PITCH && Math.abs(dp) >= Math.abs(dy)) {
+      step = G.DIRS[dp > 0 ? d : (d + 2) % 4];
+    } else if (Math.abs(dy) >= DRAG_YAW) {
+      step = G.DIRS[(d + (dy > 0 ? 1 : 3)) % 4];
+    }
+    if (!step) return null;
+    return { type: 'roof', i: s.i + step.x, j: s.j + step.z, k: s.k };
+  }
+
+  // Builds that carry on from the last piece while held.
+  const DRAGS = { roof: dragRoof, wall: dragWall };
+
   function handleBuild(dt) {
     ctrl.buildCd -= dt;
     const held = mouseL || TOUCH.fire || (settings.instant && keys[KB.get(ctrl.buildType)]);
-    if (!held || ctrl.buildType !== 'wall') ctrl.drag = null;
-    // A held wall build steps on only when the aim turns; otherwise the
-    // piece goes where the crosshair naturally points.
-    const spec = ctrl.drag ? dragWall(ctrl.drag) : targetSpec(ctrl.buildType);
+    const drags = DRAGS[ctrl.buildType];
+    if (!held || !drags) ctrl.drag = null;
+    // A held wall or spire build steps on only when the aim turns;
+    // otherwise the piece goes where the crosshair naturally points.
+    const spec = ctrl.drag ? drags(ctrl.drag) : targetSpec(ctrl.buildType);
     if (!spec) {
       G.builds.showGhost(null);
       return;
     }
     if (G.builds.get(spec)) {
-      // A wall already standing there: carry the drag on through it.
+      // A piece already standing there: carry the drag on through it.
       if (ctrl.drag) ctrl.drag = { pitch: ctrl.pitch, spec, yaw: ctrl.yaw };
       G.builds.showGhost(null);
       return;
@@ -564,7 +639,7 @@
     if (held && valid && ctrl.buildCd <= 0 && G.builds.place(spec, 'player')) {
       ctrl.buildCd = 0.025;
       stats.builds += 1;
-      if (ctrl.buildType === 'wall') ctrl.drag = { pitch: ctrl.pitch, spec, yaw: ctrl.yaw };
+      if (drags) ctrl.drag = { pitch: ctrl.pitch, spec, yaw: ctrl.yaw };
     }
   }
 
@@ -715,7 +790,9 @@
       floor: $('slot-floor'),
       roof: $('slot-roof'),
       wand: $('slot-wand'),
+      box: $('slot-box'),
     },
+    boxName: $('box-name'),
     crosshair: $('crosshair'),
     hit: $('hitmarker'),
     vignette: $('vignette'),
@@ -782,6 +859,9 @@
     setText(hud.pot, 'pot', `x${player.potions}`);
     setText(hud.wand, 'wand', ctrl.mode === 'wand' ? 'In hand' : 'Ready');
     setClass(hud.slots.wand, 'swand', 'active', ctrl.mode === 'wand');
+    const boxLeft = boxWait();
+    setText(hud.boxName, 'box', boxLeft > 0 ? `${Math.ceil(boxLeft)}s` : 'Box');
+    setClass(hud.slots.box, 'sbox', 'empty', boxLeft > 0);
     const weapon = ctrl.mode === 'weapon';
     setClass(hud.slots.w0, 's0', 'active', weapon && player.weaponIdx === 0 && player.drinkT <= 0);
     setClass(hud.slots.w1, 's1', 'active', weapon && player.weaponIdx === 1 && player.drinkT <= 0);
@@ -802,7 +882,7 @@
     }
 
     let status = '';
-    if (player.reloadT > 0) status = `Reloading ${w.name}`;
+    if (player.reloadT > 0) status = w.reloadText || `Reloading ${w.name}`;
     else if (player.drinkT > 0) status = `Drinking draught ${player.drinkT.toFixed(1)}s`;
     else if (weapon && player.ammo[player.weaponIdx] === 0) {
       status = TOUCH.enabled ? 'Tap reload' : `Press ${KB.label(KB.get('reload'))} to reload`;
@@ -1017,6 +1097,7 @@
     ctrl.mode = 'weapon';
     ctrl.ads = false;
     ctrl.wandCd = 0;
+    ctrl.boxAt = undefined;
     state = 'countdown';
     countdownT = 3;
     lastCount = 0;
@@ -1024,6 +1105,34 @@
     roundDealt.you = 0;
     roundDealt.foe = 0;
     $('round-label').textContent = `Round ${round}`;
+  }
+
+  // Math questions between rounds (from quiz.js), then the next round or
+  // the results. Spectators skip them.
+  function afterRound() {
+    if (spectating || !G.askRoundQuestions) {
+      nextRound();
+      return;
+    }
+    state = 'question';
+    for (const k of Object.keys(keys)) keys[k] = false;
+    mouseL = false;
+    mouseR = false;
+    if (document.pointerLockElement) document.exitPointerLock();
+    G.askRoundQuestions(ROUND_TIME - roundT).then(() => {
+      if (state !== 'question') return;
+      nextRound();
+      if (state === 'countdown') requestLock();
+    });
+  }
+
+  function nextRound() {
+    if (score.you >= WIN_SCORE || score.foe >= WIN_SCORE) {
+      endMatch();
+      return;
+    }
+    round += 1;
+    startRound();
   }
 
   function endMatch() {
@@ -1207,14 +1316,7 @@
     foe.animate(dt);
     if (state === 'roundEnd') {
       roundEndT -= dt;
-      if (roundEndT <= 0) {
-        if (score.you >= WIN_SCORE || score.foe >= WIN_SCORE) {
-          endMatch();
-        } else {
-          round += 1;
-          startRound();
-        }
-      }
+      if (roundEndT <= 0) afterRound();
     }
   }
 

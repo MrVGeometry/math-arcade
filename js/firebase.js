@@ -88,9 +88,14 @@ export function logOut() {
   return signOut(auth);
 }
 
-// The game is named after its page, e.g. "tictactoe" or "astro".
+// The game is named after its page, e.g. "tictactoe" or "astro". A game in
+// its own folder (spireclash/index.html) is named after the folder.
 function currentGame() {
-  const page = location.pathname.split("/").pop() || "index.html";
+  const parts = location.pathname.split("/");
+  const page = parts.pop() || "index.html";
+  if (page === "index.html" && parts.at(-1) === "spireclash") {
+    return "spireclash";
+  }
   return page.replace(/\.html$/, "") || "arcade";
 }
 

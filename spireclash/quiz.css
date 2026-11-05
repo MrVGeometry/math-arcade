@@ -1,0 +1,172 @@
+/* The arcade's question box (from css/retro.css), scoped to the dialog so
+   it leaves the rest of Spireclash alone. */
+
+dialog.question {
+  --q-bg: #0a0a1f;
+  --q-bg-2: #15153d;
+  --q-ink: #f4f4ff;
+  --q-pink: #ff2e88;
+  --q-yellow: #ffd400;
+  --q-green: #39ff14;
+  --q-red: #ff4545;
+  --q-font: "Press Start 2P", ui-monospace, monospace;
+  box-sizing: border-box;
+  width: min(calc(100vw - 32px), 440px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 24px 20px;
+  border: 4px solid var(--q-yellow);
+  background: var(--q-bg);
+  color: var(--q-ink);
+  font-family: var(--q-font);
+  font-size: 12px;
+  line-height: 1.9;
+  box-shadow: 8px 8px 0 #000;
+  text-align: center;
+}
+
+dialog.question *,
+dialog.question *::before,
+dialog.question *::after {
+  box-sizing: border-box;
+}
+
+dialog.question::backdrop {
+  background: rgba(5, 5, 20, 0.82);
+}
+
+dialog.question.has-figure {
+  width: min(calc(100vw - 32px), 560px);
+}
+
+.question form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.question p {
+  margin: 0;
+}
+
+.question .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.question-label {
+  color: var(--q-pink);
+  font-size: 10px;
+}
+
+.question-prompt {
+  color: var(--q-ink);
+  font-size: clamp(14px, 4.5vw, 18px);
+  line-height: 1.8;
+}
+
+.has-figure .question-prompt {
+  font-size: clamp(10px, 3vw, 13px);
+}
+
+.question input {
+  width: 100%;
+  padding: 12px;
+  border: 4px solid var(--q-green);
+  background: #000;
+  color: var(--q-green);
+  font-family: var(--q-font);
+  font-size: 20px;
+  text-align: center;
+}
+
+.question .feedback {
+  min-height: 1.9em;
+  font-size: 11px;
+}
+
+.question .feedback.good {
+  color: var(--q-green);
+}
+
+.question .feedback.bad {
+  color: var(--q-red);
+}
+
+.question .btn {
+  font-family: var(--q-font);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--q-bg);
+  background: var(--q-yellow);
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow:
+    inset -4px -4px 0 rgba(0, 0, 0, 0.35),
+    inset 4px 4px 0 rgba(255, 255, 255, 0.45),
+    4px 4px 0 #000;
+}
+
+.question .btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1) brightness(0.7);
+}
+
+.question .btn:focus-visible,
+.question input:focus-visible {
+  outline: 3px dashed var(--q-green);
+  outline-offset: 3px;
+}
+
+/* Geometry figures */
+
+.question-figure:empty {
+  display: none;
+}
+
+.question .figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #000;
+  border: 3px solid var(--q-bg-2);
+}
+
+.question .fig-shape {
+  fill: rgba(0, 229, 255, 0.08);
+  stroke: var(--q-ink);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.question .fig-marks {
+  stroke: var(--q-pink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.question .fig-labels {
+  fill: var(--q-yellow);
+  font-family: var(--q-font);
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.question .segment {
+  text-decoration: overline;
+  text-decoration-thickness: 2px;
+}
+
+.question .math-symbol {
+  font-family: "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", sans-serif;
+  font-size: 1.5em;
+  line-height: 1;
+  vertical-align: -0.1em;
+}

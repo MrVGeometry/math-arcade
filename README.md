@@ -4,10 +4,10 @@ A retro arcade site where students answer math questions to make moves in games.
 
 | Game | Math | Question file |
 | --- | --- | --- |
-| Tic-Tac-Toe | A question before every X | `questions.json` |
+| Tic-Tac-Toe | A question after every game | `questions.json` |
 | Deus Draconis | A question every 30 seconds | `questions.json` |
 | Astro Stomp | A question to refill oxygen, and one at each rocket | `questions.json` |
-| Spireclash | None: a 3D build-and-duel game against an AI rival (in `spireclash/`) | None |
+| Spireclash | Questions after every round of a 3D build-and-duel game (in `spireclash/`) | `questions.json` |
 
 It's fully static (HTML, CSS and JavaScript with no build step), so it can run on GitHub
 Pages, Netlify or any static host.
@@ -124,9 +124,13 @@ prompts and answers, `[[AB]]` shows as segment AB with a bar over it.
 
 ## Tuning
 
-`aiOptimalMoveChance` in `js/config.js` sets how often the tic-tac-toe CPU plays its
-best move (default `0.1`, so 1 move in 10). The rest of the time it picks a random
-open square.
+`aiMistakeChance` in `js/config.js` sets the chance that each tic-tac-toe CPU move is
+a deliberate mistake (default `0.1`, so about 1 move in 10). Every other move is its
+best one. Each move rolls separately, so mistakes can come back to back.
+
+Spireclash asks questions after every round: 1 right answer if the fight lasted under
+30 seconds, 2 if it lasted longer. Tune `quickRound` at the top of
+`spireclash/js/quiz.js`. Spectator mode has no questions.
 
 ## Deus Draconis
 

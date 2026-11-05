@@ -8,8 +8,9 @@
 <title>Spireclash</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Spectral:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Press+Start+2P&family=Spectral:wght@400;600&display=swap">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="quiz.css">
 </head>
 <body>
 <div id="game"></div>
@@ -74,11 +75,11 @@
   <div id="hotbar">
     <div class="group">
       <div class="slot" id="slot-w0"><kbd data-bind="bow">1</kbd>
-        <svg viewBox="0 0 32 32"><path d="M6 26 26 6M9 9c4-6 14-6 17 1M9 9c-6 4-6 14 1 17" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
-        <span class="name">Runebow</span><span class="sub" id="ammo-0">10 / 10</span></div>
+        <svg viewBox="0 0 32 32"><path d="M28 4c-6 1-12 4-15 8a5.5 5.5 0 0 0 7.8 7.8C24 16 27 10 28 4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M15.5 16.5a2.5 2.5 0 0 1 0-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.5" cy="22.5" r="2" fill="currentColor"/><circle cx="6" cy="26" r="1.5" fill="currentColor"/><circle cx="3.5" cy="28.5" r="1" fill="currentColor"/></svg>
+        <span class="name">Water Bolt</span><span class="sub" id="ammo-0">10 / 10</span></div>
       <div class="slot" id="slot-w1"><kbd data-bind="staff">2</kbd>
-        <svg viewBox="0 0 32 32"><path d="M7 27 22 12" stroke="currentColor" stroke-width="2.6"/><circle cx="24" cy="9" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M27 4l2-2M29 9h2M24 3V1" stroke="currentColor" stroke-width="1.6"/></svg>
-        <span class="name">Dragonbreath</span><span class="sub" id="ammo-1">5 / 5</span></div>
+        <svg viewBox="0 0 32 32"><path d="M14 15c-6 2-9 6-8.5 10 .5 4.5 20.5 4.5 21 0 .5-4-2.5-8-8.5-10M14 15l-3-4h10l-3 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13 15h6M16 15l-2 4M16 15l2 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 10c-3-1-3.5-4-1-7.5 0 2 1.5 2.5 2.5 1.5 1.5 2 1.5 5-1.5 6z" fill="currentColor"/></svg>
+        <span class="name">Fire Blast</span><span class="sub" id="ammo-1">5 / 5</span></div>
       <div class="slot" id="slot-pot"><kbd data-bind="draught">3</kbd>
         <svg viewBox="0 0 32 32"><path d="M13 4h6M14 4v6l-6 8a8 8 0 1 0 16 0l-6-8V4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
         <span class="name">Draught</span><span class="sub" id="pot-count">x2</span></div>
@@ -103,7 +104,7 @@
         <span class="name">Spire</span></div>
       <div class="slot build" id="slot-box"><kbd data-bind="box">B</kbd>
         <svg viewBox="0 0 32 32"><path d="M5 11 16 5l11 6v12l-11 6-11-6z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5 11l11 6 11-6M16 17v12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-        <span class="name">Box</span></div>
+        <span class="name" id="box-name">Box</span></div>
     </div>
   </div>
 </div>
@@ -207,13 +208,14 @@
 <script src="js/builds.js"></script>
 <script src="js/combat.js"></script>
 <script src="js/firefx.js"></script>
+<script src="js/waterfx.js"></script>
 <script src="js/armour-tex.js"></script>
 <script src="js/armour.js"></script>
 <script src="js/cuirass.js"></script>
 <script src="js/legs.js"></script>
 <script src="js/sword.js"></script>
-<script src="js/runebow.js"></script>
-<script src="js/dragonbreath.js"></script>
+<script src="js/waterbolt.js"></script>
+<script src="js/firebag.js"></script>
 <script src="js/helm.js"></script>
 <script src="js/cape-tex.js"></script>
 <script src="js/cape.js"></script>
@@ -230,5 +232,6 @@
 <script src="js/keybinds.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/game.js"></script>
+<script type="module" src="js/quiz.js"></script>
 </body>
 </html>
