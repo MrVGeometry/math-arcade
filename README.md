@@ -4,9 +4,9 @@ A retro arcade site where students answer math questions to make moves in games.
 
 | Game | Math | Question file |
 | --- | --- | --- |
-| Tic-Tac-Toe | A 1-step equation before every X | `questions.json` |
-| Deus Draconis | A 2-step equation every 30 seconds | `questions-two-step.json` |
-| Astro Stomp | A 1-step equation to refill oxygen, and one at each rocket | `questions.json` |
+| Tic-Tac-Toe | A question before every X | `questions.json` |
+| Deus Draconis | A question every 30 seconds | `questions.json` |
+| Astro Stomp | A question to refill oxygen, and one at each rocket | `questions.json` |
 | Spireclash | None: a 3D build-and-duel game against an AI rival (in `spireclash/`) | None |
 
 It's fully static (HTML, CSS and JavaScript with no build step), so it can run on GitHub
@@ -58,14 +58,15 @@ is what protects the data.
 
 ### Making student logins
 
-Teacher page > **Create student logins**. Pick a letter, a starting number and how
-many. Usernames are an adjective starting with that letter, an animal, and a number
-counting up from the start, e.g. L and 30 give `luckyotter30`, `loyalpanda31`. Word
-lists are in `js/words.js`.
+Teacher page > **Create a student login**. Pick a letter and the class period
+(1 to 8), then press **Create login** once per student. Usernames are an adjective
+starting with that letter, an animal, and a two-digit number whose first digit is the
+period, e.g. L and period 3 give names like `luckyotter37`. Word lists are in
+`js/words.js`.
 
-The class results table shows every login with its PIN. **Download logins** saves a
-CSV and **Print login cards** prints cut-out cards, for the class picked in the
-filter. Keep your own list matching usernames to real names: Firebase never sees
+The class results table shows every login with its PIN, grouped by period.
+**Download logins** saves a CSV and **Print login cards** prints cut-out cards, for
+the period picked in the filter. Keep your own list matching usernames to real names: Firebase never sees
 student names.
 
 A forgotten PIN can be looked up in the results table. To remove a student, delete
@@ -87,13 +88,28 @@ when you click their name. The teacher's own play is never saved.
 
 ## Change the questions
 
-1. Sign in, press **Teacher**, and pick the question set (one per game).
-2. Edit, delete, add, or generate equations (1-step or 2-step to match the set).
-   Each set's draft autosaves separately in that browser.
-3. Press **Export**, replace the matching file in this folder with the download
-   (`questions.json` or `questions-two-step.json`), and push.
+Every game draws from one pool in `questions.json`: 75 triangle congruence
+questions, each with a figure of two congruent triangles and exactly three pairs of
+markings (tick marks for sides, arcs for angles, a square for a right angle).
 
-You can also edit the files by hand. Each entry is `{ "prompt": ..., "answer": ... }`.
+- 25 **name the shortcut**: type SSS, SAS, ASA, AAS or HL (5 of each).
+- 25 **complete the statement**: given `△QMR ≅ △___`, type the only matching order.
+- 25 **match a part**: given a statement, name the angle or side that matches.
+
+Answers ignore capitals, spaces and the symbols △ ∠ ≅, so `QMR`, `qmr` and `△QMR`
+all count. Sides can be typed either way round, angles as one letter or three.
+
+To change them:
+
+1. Sign in, press **Teacher**, and scroll to **Question editor**.
+2. Edit, delete or add questions, or generate more of any type. The draft
+   autosaves in that browser.
+3. Press **Export**, replace `questions.json` in this folder with the download,
+   and push.
+
+Each entry is `{ "id", "prompt", "answer", "accept", "figure" }`. `accept` lists
+other right answers. `figure` is described at the top of `js/congruence.js`. In
+prompts and answers, `[[AB]]` shows as segment AB with a bar over it.
 
 ## Privacy
 
@@ -120,9 +136,9 @@ schedule, flight paths, slime, fire ammo (3 shots, one back every 2s), +5 per
 monster, 3 lives and the 90-second round all follow the original. The pixel art and
 sound effects are new, and there's no background music.
 
-Math: every 30 seconds of round time the game pauses for a 2-step equation. Any
-answer gives a 2.5-second shield (the dragon blinks inside a blue box). A correct
-answer also gives +10 points and refills fire. Losing a life restarts the round
+Math: every 30 seconds of round time the game pauses for questions until one
+is answered right. That gives a 2.5-second shield (the dragon blinks inside a blue
+box), +10 points and a full refill of fire. Losing a life restarts the round
 clock, so the questions come at 30s and 60s of each life. Tune `shieldSeconds`,
 `bonusPoints` and `questionEvery` at the top of `js/draconis/game.js`.
 
@@ -140,9 +156,9 @@ on-screen buttons appear after the first tap.
   While stunned it's harmless and any landing on it kills it.
 - **Saturn:** all six.
 
-Math: getting hit or falling costs one of 3 oxygen hearts. At zero, a 1-step equation
-pops up: right refills oxygen on the spot, wrong restarts the planet. Reaching the
-rocket asks one more: right gives +500, and you launch either way.
+Math: getting hit or falling costs one of 3 oxygen hearts. At zero, a question
+pops up and keeps coming until one is answered right, which refills oxygen. Reaching
+the rocket asks one more (again until right) for +500.
 
 Stages are described in tile columns in `js/astro/levels.js` (floor ranges, blocks,
 platforms, enemies, rocket), so they're easy to rearrange. The low-gravity jump
@@ -154,8 +170,9 @@ sheets.
 
 Create a page that includes the same session guard script and top bar, call
 `initPage()` from `js/ui.js`, then `await loadQuestions(file)` once and
-`await askQuestion({ source: file })` whenever a move needs an answer (it resolves
-`true` or `false`). Answers are saved for the dashboard automatically. When a game
+`await askQuestion({ source: file })` whenever a move needs an answer. It keeps
+asking new questions until one is answered right (Esc can't close it), then resolves
+`true`. Answers are saved for the dashboard automatically. When a game
 ends, call `recordGameEnd({ score })` from `js/firebase.js` (add `result: "wins"`
 or `"losses"` if it has one). Add a card for it in `arcade.html`, and add the file to
 `questionSets` in `js/teacher.js` so teachers can edit it.

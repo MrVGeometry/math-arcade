@@ -1,5 +1,7 @@
-// Makes student logins from the teacher page: adjective (starting with the
-// class letter) + animal + number, with a random 4-digit PIN.
+// Makes student logins from the teacher page, one at a time: an adjective
+// starting with the chosen letter, an animal, and a two-digit number whose
+// first digit is the class period (e.g. period 3 gives luckyotter37). Each
+// student gets a random 4-digit PIN.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import {
   createUserWithEmailAndPassword,
@@ -37,9 +39,11 @@ function makePin() {
   return String(1000 + randomIndex(9000));
 }
 
-// Tries a few word pairs in case a name is already in use.
-async function createOne({ classCode, letter, number, taken }) {
-  for (let tries = 0; tries < 10; tries += 1) {
+// Tries different word pairs and second digits until the name is free.
+async function createStudent({ letter, period, taken }) {
+  const classCode = `Period ${period}`;
+  for (let tries = 0; tries < 20; tries += 1) {
+    const number = `${period}${randomIndex(10)}`;
     const username = `${pick(adjectives[letter])}${pick(nouns)}${number}`;
     if (taken.has(username)) continue;
     taken.add(username);
@@ -64,17 +68,7 @@ async function createOne({ classCode, letter, number, taken }) {
       if (error.code !== "auth/email-already-in-use") throw error;
     }
   }
-  throw new Error(`No free username left for number ${number}.`);
-}
-
-// One at a time, because Firebase limits how fast accounts can be made.
-async function createStudents({ count, onProgress, ...batch }) {
-  const made = [];
-  for (let i = 0; i < count; i += 1) {
-    made.push(await createOne({ ...batch, number: batch.start + i }));
-    onProgress(made.length);
-  }
-  return made;
+  throw new Error("Couldn't find a free username. Try a different letter.");
 }
 
 function friendlyError(error) {
@@ -82,52 +76,40 @@ function friendlyError(error) {
     return "Permission denied. Check teacherUid in js/config.js and the Firestore rules.";
   }
   if (error.code === "auth/too-many-requests") {
-    return "Firebase paused account creation. Wait an hour, then make the rest.";
+    return "Firebase paused account creation. Wait a while, then try again.";
   }
   return error.message;
 }
 
-// Wires up the "Create student logins" panel. getTaken() returns the
-// usernames already in use. onCreated() runs after each batch.
+// Wires up the "Create a student login" panel. getTaken() returns the
+// usernames already in use. onCreated() runs after each new student.
 export function initRoster({ getTaken, onCreated }) {
   const letterEl = document.getElementById("roster-letter");
-  const startEl = document.getElementById("roster-start");
-  const countEl = document.getElementById("roster-count");
-  const classEl = document.getElementById("roster-class");
+  const periodEl = document.getElementById("roster-period");
   const button = document.getElementById("roster-create");
   const statusEl = document.getElementById("roster-status");
 
   button.addEventListener("click", async () => {
     const letter = letterEl.value.trim().toLowerCase();
-    const start = Math.floor(Number(startEl.value));
-    const count = Math.floor(Number(countEl.value));
+    const period = Number(periodEl.value);
     if (!adjectives[letter]) {
       statusEl.textContent = "Pick a letter from A to Z.";
       return;
     }
-    if (!(start >= 0 && count >= 1 && count <= 60)) {
-      statusEl.textContent = "Use a starting number of 0 or more and 1 to 60 students.";
+    if (!(Number.isInteger(period) && period >= 1 && period <= 8)) {
+      statusEl.textContent = "Pick a period from 1 to 8.";
       return;
     }
-    const classCode = classEl.value.trim() || `${letter.toUpperCase()}${start}`;
     button.disabled = true;
+    statusEl.textContent = "Making a login...";
     try {
-      const made = await createStudents({
-        classCode,
-        count,
-        letter,
-        onProgress: (done) => {
-          statusEl.textContent = `Making logins... ${done} of ${count}`;
-        },
-        start,
-        taken: getTaken(),
-      });
-      statusEl.textContent = `Made ${made.length} logins for ${classCode}.`;
+      const student = await createStudent({ letter, period, taken: getTaken() });
+      statusEl.textContent = `Made ${student.username} (PIN ${student.pin}) in ${student.classCode}.`;
+      await onCreated(student.classCode);
     } catch (error) {
       statusEl.textContent = friendlyError(error);
     } finally {
       button.disabled = false;
-      await onCreated(classCode);
     }
   });
 }

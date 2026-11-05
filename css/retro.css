@@ -730,3 +730,64 @@ table.data .bad {
     margin: 0 0 6px;
   }
 }
+
+/* Geometry figures in the question box */
+
+dialog.question.has-figure {
+  width: min(calc(100vw - 32px), 560px);
+}
+
+.question-figure:empty {
+  display: none;
+}
+
+.figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #000;
+  border: 3px solid var(--bg-2);
+}
+
+.fig-shape {
+  fill: rgba(0, 229, 255, 0.08);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.fig-marks {
+  stroke: var(--pink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.fig-labels {
+  fill: var(--yellow);
+  font-family: var(--font);
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.has-figure .question-prompt {
+  font-size: clamp(10px, 3vw, 13px);
+}
+
+/* Segment names, e.g. segment AB, drawn with a bar over the letters. */
+.segment {
+  text-decoration: overline;
+  text-decoration-thickness: 2px;
+}
+
+.q-row .figure {
+  grid-column: 1 / -1;
+  max-width: 360px;
+}
+
+.math-symbol {
+  font-family: "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", sans-serif;
+  font-size: 1.5em;
+  line-height: 1;
+  vertical-align: -0.1em;
+}

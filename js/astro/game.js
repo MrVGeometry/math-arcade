@@ -1,7 +1,7 @@
 // Astro Stomp: a three-planet platformer. Jump, then press down to smash
-// aliens. Running out of oxygen asks a 1-step equation: get it right to refill
-// and carry on, or the stage restarts. The rocket at the end of each planet
-// asks one more for a launch bonus.
+// aliens. Running out of oxygen asks questions until one is right, which
+// refills oxygen. The rocket at the end of each planet asks one more for a
+// launch bonus.
 import { askQuestion, loadQuestions } from "../questions.js";
 import { play } from "../sound.js";
 import { recordGameEnd } from "../firebase.js";

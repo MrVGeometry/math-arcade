@@ -24,7 +24,7 @@
     <section class="panel">
       <h2>CLASS RESULTS</h2>
       <div class="toolbar">
-        <label class="wide">Class <select id="class-filter"><option value="">All classes</option></select></label>
+        <label class="wide">Period <select id="class-filter"><option value="">All periods</option></select></label>
         <button id="results-refresh" class="btn small" type="button">Refresh</button>
         <button id="roster-csv" class="btn small ghost" type="button">Download logins</button>
         <button id="roster-print" class="btn small ghost" type="button">Print login cards</button>
@@ -33,7 +33,7 @@
       <div class="table-wrap">
         <table class="data">
           <thead>
-            <tr><th>Username</th><th>PIN</th><th>Class</th><th>Answered</th><th>Correct</th><th>Tic-tac-toe W-D-L</th><th>Draconis best</th><th>Astro best</th><th>Last played</th></tr>
+            <tr><th>Username</th><th>PIN</th><th>Period</th><th>Answered</th><th>Correct</th><th>Tic-tac-toe W-D-L</th><th>Draconis best</th><th>Astro best</th><th>Last played</th></tr>
           </thead>
           <tbody id="results-body"></tbody>
         </table>
@@ -43,7 +43,7 @@
 
     <section class="panel">
       <h2>TOUGHEST QUESTIONS</h2>
-      <p class="note">The questions this class has missed most, across every game.</p>
+      <p class="note">The questions this period has missed most, across every game.</p>
       <div class="table-wrap">
         <table class="data">
           <thead>
@@ -77,14 +77,17 @@
     </section>
 
     <section class="panel">
-      <h2>CREATE STUDENT LOGINS</h2>
-      <p class="note">Usernames are an adjective starting with your letter, an animal, then a number counting up from your starting number. For example, L and 30 give names like luckyotter30, loyalpanda31 and lunarfox32. Each student gets a random 4-digit PIN.</p>
+      <h2>CREATE A STUDENT LOGIN</h2>
+      <p class="note">Each click makes one login: an adjective starting with your letter, an animal, and a two-digit number that starts with the period. For example, L and period 3 give names like luckyotter37. Each student gets a random 4-digit PIN, and is grouped under their period in Class results.</p>
       <div class="toolbar">
         <label>Letter <input id="roster-letter" maxlength="1" value="L"></label>
-        <label>Start at <input id="roster-start" type="number" min="0" value="30"></label>
-        <label>How many <input id="roster-count" type="number" min="1" max="60" value="25"></label>
-        <label class="wide">Class name (optional) <input id="roster-class" placeholder="e.g. Period 3"></label>
-        <button id="roster-create" class="btn small alt" type="button">Create logins</button>
+        <label>Period
+          <select id="roster-period">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+          </select>
+        </label>
+        <button id="roster-create" class="btn small alt" type="button">Create login</button>
       </div>
       <p id="roster-status" class="note" role="status"></p>
     </section>
@@ -112,10 +115,17 @@
       <h2>ADD QUESTIONS</h2>
       <div class="toolbar">
         <button id="add" class="btn small" type="button">+ Blank question</button>
+        <label class="wide">Type
+          <select id="generate-kind">
+            <option value="shortcut">Name the shortcut (SSS, SAS, ASA, AAS, HL)</option>
+            <option value="statement">Complete the statement</option>
+            <option value="matching">Match a part</option>
+          </select>
+        </label>
         <label>How many <input id="generate-count" type="number" min="1" max="50" value="10"></label>
-        <button id="generate" class="btn small alt" type="button">Generate <span id="generate-kind">1-step</span> equations</button>
+        <button id="generate" class="btn small alt" type="button">Generate</button>
       </div>
-      <p class="note">Answers are checked as numbers when possible, so 7, x = 7 and 7.0 all count. Fractions like 1/2 work too.</p>
+      <p class="note">Generated questions come with a figure: two congruent triangles with three pairs of markings. Answers ignore capitals, spaces and symbols, so QMR, qmr and △QMR all count. In question text, [[AB]] shows as segment AB with a bar over it. Editing the text keeps the figure. Questions you add yourself have no figure.</p>
     </section>
 
     <section class="panel">

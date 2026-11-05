@@ -1,6 +1,6 @@
-// Deus Draconis: survive 90 seconds of monsters and slime. A two-step
-// equation pops up every 30 seconds; answering it (right or wrong) gives a
-// short shield, and a right answer also earns bonus points and full fire.
+// Deus Draconis: survive 90 seconds of monsters and slime. Every 30 seconds
+// questions pop up until one is right, which gives a short shield, bonus
+// points and full fire.
 import { askQuestion, loadQuestions } from "../questions.js";
 import { play } from "../sound.js";
 import { recordGameEnd } from "../firebase.js";
@@ -26,7 +26,7 @@ import {
 import { draw } from "./render.js";
 import { buildSprites } from "./sprites.js";
 
-const questionSource = "questions-two-step.json";
+const questionSource = "questions.json";
 const questionEvery = 30;
 const shieldSeconds = 2.5;
 const bonusPoints = 10;

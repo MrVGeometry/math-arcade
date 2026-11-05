@@ -9,6 +9,7 @@ import {
   query,
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { getSession } from "./auth.js";
+import { renderMathText } from "./figure.js";
 import { auth, db, isTeacherUid } from "./firebase.js";
 import { initRoster } from "./roster.js";
 
@@ -90,7 +91,7 @@ function renderResults() {
   resultsBody.replaceChildren(...rows);
   statusEl.textContent = rows.length
     ? `${rows.length} students`
-    : "No students yet. Make some logins below.";
+    : "No students yet. Make a login below.";
 }
 
 // Adds up every student's per-question totals and ranks by misses.
@@ -112,8 +113,8 @@ function renderStruggles() {
   strugglesBody.replaceChildren(
     ...worst.map((t) => {
       return row([
-        t.prompt,
-        t.answer,
+        renderMathText(t.prompt),
+        renderMathText(t.answer),
         t.wrong,
         percent(t.right, t.right + t.wrong),
         t.missedBy,
@@ -134,7 +135,13 @@ async function showStudent(student) {
     .slice(0, 10);
   document.getElementById("detail-missed").replaceChildren(
     ...missed.map((q) => {
-      return row([q.prompt, q.answer, q.lastWrong ?? "", q.wrong, q.right ?? 0]);
+      return row([
+        renderMathText(q.prompt),
+        renderMathText(q.answer),
+        q.lastWrong ?? "",
+        q.wrong,
+        q.right ?? 0,
+      ]);
     }),
   );
   const recentBody = document.getElementById("detail-recent");
@@ -152,7 +159,7 @@ async function showStudent(student) {
       const a = d.data();
       const mark = el("span", a.correct ? "Right" : "Wrong");
       mark.className = a.correct ? "good" : "bad";
-      return row([when(a.at), a.game, a.prompt, a.given, mark]);
+      return row([when(a.at), a.game, renderMathText(a.prompt), a.given, mark]);
     }),
   );
 }
@@ -161,7 +168,7 @@ function renderClassOptions() {
   const current = classSelect.value;
   const codes = [...new Set(students.map((s) => s.classCode))].sort();
   classSelect.replaceChildren(
-    new Option("All classes", ""),
+    new Option("All periods", ""),
     ...codes.map((code) => new Option(code, code)),
   );
   classSelect.value = codes.includes(current) ? current : "";
@@ -191,7 +198,7 @@ async function load() {
 
 function downloadCsv() {
   const lines = [
-    "username,pin,class",
+    "username,pin,period",
     ...inClass().map((s) => `${s.username},${s.pin},"${s.classCode}"`),
   ];
   const url = URL.createObjectURL(

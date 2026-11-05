@@ -116,7 +116,7 @@ function summaryRef(uid) {
 // Saves one answered question: a log entry with exactly what was typed, and
 // running totals in the student's summary for the dashboard. Never throws,
 // so a dropped connection can't break a game.
-export async function recordAttempt({ answer, correct, given, prompt }) {
+export async function recordAttempt({ answer, correct, given, id, prompt }) {
   const uid = studentUid();
   if (!uid) return;
   const game = currentGame();
@@ -139,7 +139,7 @@ export async function recordAttempt({ answer, correct, given, prompt }) {
         {
           games: { [game]: { right, wrong } },
           lastPlayed: serverTimestamp(),
-          questions: { [questionKey(prompt)]: question },
+          questions: { [id ? `id_${id}` : questionKey(prompt)]: question },
           right,
           wrong,
         },

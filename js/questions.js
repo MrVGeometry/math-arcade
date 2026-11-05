@@ -1,5 +1,6 @@
 // Loads the question bank and runs the "answer to move" modal. Any game can
 // call askQuestion() and await a true/false result.
+import { renderFigure, renderMathText } from "./figure.js";
 import { recordAttempt } from "./firebase.js";
 import { play } from "./sound.js";
 
@@ -49,14 +50,19 @@ function nextQuestion(source) {
   return bank.deck.pop();
 }
 
-// Accepts "7", "x = 7", "x=7", "-3", "1/2" and "0.5".
+// Accepts "7", "x = 7", "x=7", "-3", "1/2" and "0.5". For geometry it
+// ignores case, spaces, the words triangle/angle/segment, the symbols
+// △ ∠ ≅ < and bars over segment names, and dots in "S.A.S.".
 function normalise(text) {
-  return String(text)
+  const plain = String(text)
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "")
+    .replace(/triangle|angle|segment/g, "")
+    .replace(/[△∠≅<[\]‾¯\u0305]/g, "")
     .replace(/^[a-z]=/, "")
     .replace(/−/g, "-");
+  return /\d/.test(plain) ? plain : plain.replace(/\./g, "");
 }
 
 function toNumber(text) {
@@ -76,32 +82,45 @@ export function isCorrect(expected, given) {
   return a === b;
 }
 
+// True while a question is on screen, so the dialog can't be got rid of.
+let answering = false;
+
 function buildDialog() {
   dialog = document.createElement("dialog");
   dialog.className = "question";
   dialog.setAttribute("aria-labelledby", "question-prompt");
+  // Browsers that support it ignore Esc and outside clicks entirely.
+  dialog.setAttribute("closedby", "none");
   dialog.innerHTML = `
     <form>
       <p class="question-label"></p>
+      <div class="question-figure"></div>
       <p class="question-prompt" id="question-prompt"></p>
       <label class="sr-only" for="question-input">Your answer</label>
       <input id="question-input" autocomplete="off" required>
       <p class="feedback" role="status" aria-live="polite"></p>
       <button class="btn" type="submit">Submit</button>
     </form>`;
-  // No escaping out of a question to fish for an easier one.
+  // No escaping out of a question to fish for an easier one. Chrome lets a
+  // second Esc through even when cancel is blocked, so block the key too,
+  // and if the dialog closes anyway, put it straight back.
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
+  });
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") event.preventDefault();
+  });
+  dialog.addEventListener("close", () => {
+    if (!answering) return;
+    dialog.showModal();
+    dialog.querySelector("input").focus();
   });
   document.body.append(dialog);
 }
 
-// The bank must be loaded with loadQuestions(source) first.
-export function askQuestion({
-  label = "Solve it!",
-  source = "questions.json",
-} = {}) {
-  if (!dialog) buildDialog();
+// Shows one question in the open dialog and resolves true or false once the
+// feedback has been on screen long enough to read.
+function askOnce(label, source) {
   const question = nextQuestion(source);
   const form = dialog.querySelector("form");
   const input = dialog.querySelector("input");
@@ -109,39 +128,63 @@ export function askQuestion({
   const feedback = dialog.querySelector(".feedback");
 
   dialog.querySelector(".question-label").textContent = label;
-  dialog.querySelector(".question-prompt").textContent = question.prompt;
+  dialog
+    .querySelector(".question-prompt")
+    .replaceChildren(renderMathText(question.prompt));
+  const figureEl = dialog.querySelector(".question-figure");
+  figureEl.replaceChildren(
+    ...(question.figure ? [renderFigure(question.figure)] : []),
+  );
+  dialog.classList.toggle("has-figure", Boolean(question.figure));
   input.value = "";
   input.disabled = false;
   submit.disabled = false;
   feedback.textContent = "";
   feedback.className = "feedback";
-  dialog.showModal();
   input.focus();
 
   return new Promise((resolve) => {
     form.onsubmit = (event) => {
       event.preventDefault();
-      const correct = isCorrect(question.answer, input.value);
+      const answers = [question.answer, ...(question.accept ?? [])];
+      const correct = answers.some((a) => isCorrect(a, input.value));
       input.disabled = true;
       submit.disabled = true;
-      feedback.textContent = correct
-        ? "Correct!"
-        : `Nope! The answer is ${question.answer}`;
+      feedback.replaceChildren(
+        correct
+          ? "Correct!"
+          : renderMathText(
+            `Nope! The answer is ${question.answer}. Try another one.`,
+          ),
+      );
       feedback.classList.add(correct ? "good" : "bad");
       play(correct ? "correct" : "wrong");
       recordAttempt({
         answer: question.answer,
         correct,
         given: input.value,
+        id: question.id,
         prompt: question.prompt,
       });
-      setTimeout(
-        () => {
-          dialog.close();
-          resolve(correct);
-        },
-        correct ? 900 : 2200,
-      );
+      setTimeout(() => resolve(correct), correct ? 900 : 2600);
     };
   });
+}
+
+// Keeps asking new questions until one is answered correctly, so it always
+// resolves true. The bank must be loaded with loadQuestions(source) first.
+export async function askQuestion({
+  label = "Solve it!",
+  source = "questions.json",
+} = {}) {
+  if (!dialog) buildDialog();
+  answering = true;
+  dialog.showModal();
+  let correct = await askOnce(label, source);
+  while (!correct) {
+    correct = await askOnce("Not quite. Try this one!", source);
+  }
+  answering = false;
+  dialog.close();
+  return true;
 }

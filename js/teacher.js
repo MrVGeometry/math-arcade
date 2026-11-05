@@ -1,20 +1,14 @@
+import { questionKinds } from "./congruence.js";
+import { renderFigure } from "./figure.js";
 import { fetchQuestions, isValidQuestion } from "./questions.js";
 import { initPage } from "./ui.js";
 
-// Each game reads its own question file. Edits are kept as a draft per file
-// in this browser until exported.
+// Every game shares one question file. Edits are kept as a draft in this
+// browser until exported.
 const questionSets = [
   {
     file: "questions.json",
-    generate: makeOneStep,
-    kind: "1-step",
-    label: "Tic-Tac-Toe: 1-step equations",
-  },
-  {
-    file: "questions-two-step.json",
-    generate: makeTwoStep,
-    kind: "2-step",
-    label: "Deus Draconis: 2-step equations",
+    label: "All games: triangle congruence",
   },
 ];
 
@@ -26,10 +20,10 @@ const generateCount = document.getElementById("generate-count");
 let questions = [];
 let currentSet = questionSets[0];
 
-// The first set keeps the original key so existing drafts still load.
+// A new key for the congruence set, so an old equation draft can't load
+// over it.
 function draftKey() {
-  const base = "mathArcadeTeacherDraft";
-  return currentSet === questionSets[0] ? base : `${base}:${currentSet.file}`;
+  return `mathArcadeTeacherDraft:congruence:${currentSet.file}`;
 }
 
 function setStatus(text) {
@@ -76,9 +70,15 @@ function rowFor(question, index) {
   promptInput.value = question.prompt;
   answerInput.value = question.answer;
   row.classList.toggle("invalid", !isValidQuestion(question));
+  if (question.figure) row.append(renderFigure(question.figure));
 
   const onEdit = () => {
+    // Keep the figure and id. A changed answer drops the old alternative
+    // answers, so they can't be marked right by mistake.
+    const old = questions[index];
     questions[index] = {
+      ...old,
+      accept: answerInput.value === old.answer ? old.accept : [],
       answer: answerInput.value,
       prompt: promptInput.value,
     };
@@ -107,60 +107,29 @@ function addBlank() {
   listEl.lastElementChild?.querySelector("input").focus();
 }
 
-function randomInt(min, max) {
-  return min + Math.floor(Math.random() * (max - min + 1));
-}
-
-// One-step equations with whole-number answers from 0 to 15.
-function makeOneStep() {
-  const x = randomInt(0, 15);
-  const a = randomInt(2, 12);
-  const forms = [
-    () => `x + ${a} = ${x + a}`,
-    () => `${a} + x = ${x + a}`,
-    () => `x - ${a} = ${x - a}`,
-    () => `${a}x = ${a * x}`,
-    () => `x ÷ ${a} = ${x}`,
-  ];
-  const form = randomInt(0, forms.length - 1);
-  // Division needs x to be a multiple of a, so solve for a*x instead.
-  const answer = form === 4 ? a * x : x;
-  return { answer: String(answer), prompt: `Solve for x: ${forms[form]()}` };
-}
-
-// Two-step equations with whole-number answers from 0 to 12.
-function makeTwoStep() {
-  const x = randomInt(0, 12);
-  const a = randomInt(2, 9);
-  const b = randomInt(1, 15);
-  const forms = [
-    () => `${a}x + ${b} = ${a * x + b}`,
-    () => `${a}x - ${b} = ${a * x - b}`,
-    () => `${b} + ${a}x = ${a * x + b}`,
-    () => `x ÷ ${a} + ${b} = ${x + b}`,
-  ];
-  const form = randomInt(0, forms.length - 1);
-  // Division needs x to be a multiple of a, so solve for a*x instead.
-  const answer = form === 3 ? a * x : x;
-  return { answer: String(answer), prompt: `Solve for x: ${forms[form]()}` };
-}
-
 function generate() {
   const count = Math.min(Math.max(Number(generateCount.value) || 0, 1), 50);
-  for (let i = 0; i < count; i += 1) questions.push(currentSet.generate());
+  const kind = questionKinds[document.getElementById("generate-kind").value];
+  for (let i = 0; i < count; i += 1) {
+    questions.push({ id: `g${Date.now().toString(36)}${i}`, ...kind.make() });
+  }
   saveDraft();
   render();
 }
 
 function exportFile() {
   const clean = questions
-    .map((q) => ({ answer: String(q.answer).trim(), prompt: q.prompt.trim() }))
+    .map((q) => ({
+      ...q,
+      answer: String(q.answer).trim(),
+      prompt: q.prompt.trim(),
+    }))
     .filter(isValidQuestion);
   if (clean.length === 0) {
     setStatus("Add at least one complete question before exporting.");
     return;
   }
-  const body = `${JSON.stringify({ questions: clean, version: 1 }, null, 2)}\n`;
+  const body = `${JSON.stringify({ questions: clean, version: 2 }, null, 1)}\n`;
   const url = URL.createObjectURL(
     new Blob([body], { type: "application/json" }),
   );
@@ -179,8 +148,8 @@ function exportFile() {
 
 async function loadPublished() {
   questions = (await fetchQuestions(currentSet.file)).map((q) => ({
+    ...q,
     answer: String(q.answer),
-    prompt: q.prompt,
   }));
   render();
 }
@@ -198,7 +167,6 @@ async function openSet(set) {
   document.querySelectorAll("[data-file]").forEach((el) => {
     el.textContent = set.file;
   });
-  document.getElementById("generate-kind").textContent = set.kind;
   const draft = readDraft();
   if (Array.isArray(draft)) {
     questions = draft;
