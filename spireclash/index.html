@@ -175,6 +175,11 @@
           <input type="range" id="sens" min="0.2" max="3" step="0.1" value="1"></label>
         <label>Volume <output id="vol-out">70</output>
           <input type="range" id="vol" min="0" max="1" step="0.05" value="0.7"></label>
+        <label>Graphics
+          <select id="graphics">
+            <option value="classic">Classic (smoother on most devices)</option>
+            <option value="high">High detail</option>
+          </select></label>
         <label class="check kb-only"><input type="checkbox" id="instant"> Place pieces the moment a build key is pressed</label>
         <button class="btn-primary" id="start" type="button">Enter the arena</button>
         <button class="btn-ghost" id="spectate" type="button">Watch two Archmages duel</button>
@@ -221,6 +226,7 @@
 <script src="js/cape.js"></script>
 <script src="js/tabard.js"></script>
 <script src="js/models.js"></script>
+<script src="js/models-classic.js"></script>
 <script src="js/character.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/land.js"></script>
@@ -229,6 +235,7 @@
 <script src="js/castle.js"></script>
 <script src="js/clouds.js"></script>
 <script src="js/world.js"></script>
+<script src="js/world-classic.js"></script>
 <script src="js/keybinds.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/game.js"></script>

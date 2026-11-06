@@ -33,7 +33,7 @@
 
   /* Settings -------------------------------------------------------------- */
 
-  const settings = { sens: 1, instant: true, volume: 0.7, difficulty: 'knight', controls: 'auto' };
+  const settings = { sens: 1, instant: true, volume: 0.7, difficulty: 'knight', controls: 'auto', graphics: 'classic' };
   try {
     Object.assign(settings, JSON.parse(localStorage.getItem('spireclash-settings') || '{}'));
   } catch (e) {
@@ -53,7 +53,10 @@
   /* Scene ----------------------------------------------------------------- */
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  // Classic draws at one pixel per CSS pixel, so retina screens do a quarter
+  // of the work. High graphics keeps up to 2x for sharpness.
+  const maxPixelRatio = G.highGraphics ? 2 : 1;
+  renderer.setPixelRatio(Math.min(maxPixelRatio, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1264,6 +1267,14 @@
   $('instant').addEventListener('change', (e) => {
     settings.instant = e.target.checked;
     saveSettings();
+  });
+  // The world and knights are built once at start-up, so a new graphics
+  // setting takes effect by reloading the page (only offered from the menu).
+  $('graphics').value = G.graphics;
+  $('graphics').addEventListener('change', (e) => {
+    settings.graphics = e.target.value;
+    saveSettings();
+    window.location.reload();
   });
   $('start').addEventListener('click', () => startMatch(false));
   $('spectate').addEventListener('click', () => startMatch(true));

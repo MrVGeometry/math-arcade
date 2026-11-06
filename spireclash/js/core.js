@@ -23,6 +23,19 @@
   ];
   G.now = 0;
 
+  // Graphics quality: 'classic' (the default, lighter look) or 'high' (the
+  // painted, sculpted look). Read here, before anything is built, because
+  // the textures, world and knights are all chosen from it at start-up.
+  // Changing it in the settings reloads the page.
+  G.graphics = 'classic';
+  try {
+    const saved = JSON.parse(localStorage.getItem('spireclash-settings') || '{}');
+    if (saved.graphics === 'high') G.graphics = 'high';
+  } catch (e) {
+    // Storage can be unavailable (private windows); classic is fine.
+  }
+  G.highGraphics = G.graphics === 'high';
+
   G.clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   G.lerp = (a, b, t) => a + (b - a) * t;
   G.rand = (a, b) => a + Math.random() * (b - a);
@@ -210,7 +223,8 @@
   G.texKit = { canvas, texture, grain, glyph };
 
   G.makeTextures = function () {
-    G.tex = Object.assign({ runes: runes(), barrier: barrier() }, G.paintTextures(), G.armourTextures());
+    const extra = G.highGraphics ? Object.assign(G.paintTextures(), G.armourTextures()) : G.classicTextures();
+    G.tex = Object.assign({ runes: runes(), barrier: barrier() }, extra);
   };
 
   /* ---------------------------------------------------------------------- */

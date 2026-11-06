@@ -411,6 +411,8 @@
   }
 
   G.createWorld = function () {
+    // The default Classic setting uses the original, lighter world.
+    if (!G.highGraphics) return G.createClassicWorld();
     const scene = new THREE.Scene();
     // Thick, soft distance haze, as in the painted adventure games of old.
     scene.fog = new THREE.Fog(0xc9d5e6, 110, 680);

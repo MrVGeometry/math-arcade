@@ -431,9 +431,37 @@
       P.head.rotation.set(-0.35 * f, 0, 0);
       P.potion.visible = false;
       P.ring.visible = false;
-      G.updateCape(P.cape, dt, G.now, { f: 0, side: 0, air: false, legL: a, legR: a });
-      G.updateTabard(P.tabard, dt, G.now, { fwd: 0, side: 0, air: false, legL: a, legR: a });
+      if (P.capeStrips) G.flutterClassicCape(P, 0, true, G.now);
+      else G.updateCape(P.cape, dt, G.now, { f: 0, side: 0, air: false, legL: a, legR: a });
+      if (P.tabard) G.updateTabard(P.tabard, dt, G.now, { fwd: 0, side: 0, air: false, legL: a, legR: a });
       this.model.updateMatrixWorld(true);
+    }
+
+    /** Cape and tabard: simulated cloth in high graphics, simple flutter in classic. */
+    animateCloth(dt, f, twist) {
+      const P = this.parts;
+      if (P.capeStrips) {
+        G.flutterClassicCape(P, f, this.onGround, G.now);
+        return;
+      }
+      // Cape billow: forward speed lifts it out behind, strafing swings it.
+      const cy = Math.cos(this.yaw - twist);
+      const sy = Math.sin(this.yaw - twist);
+      G.updateCape(P.cape, dt, G.now, {
+        f,
+        side: (this.vel.x * cy - this.vel.z * sy) / SPEED,
+        air: !this.onGround,
+        legL: P.legL.rotation.x,
+        legR: P.legR.rotation.x,
+      });
+      // Tabard: forward speed streams the back panel, backing up the front.
+      G.updateTabard(P.tabard, dt, G.now, {
+        fwd: -(this.vel.x * sy + this.vel.z * cy) / SPEED,
+        side: (this.vel.x * cy - this.vel.z * sy) / SPEED,
+        air: !this.onGround,
+        legL: P.legL.rotation.x,
+        legR: P.legR.rotation.x,
+      });
     }
 
     animate(dt) {
@@ -474,24 +502,7 @@
       }
       this.animateCast(dt);
       P.head.rotation.set(this.pitch * 0.6, twist, 0);
-      // Cape billow: forward speed lifts it out behind, strafing swings it.
-      const cy = Math.cos(this.yaw - twist);
-      const sy = Math.sin(this.yaw - twist);
-      G.updateCape(P.cape, dt, G.now, {
-        f,
-        side: (this.vel.x * cy - this.vel.z * sy) / SPEED,
-        air: !this.onGround,
-        legL: P.legL.rotation.x,
-        legR: P.legR.rotation.x,
-      });
-      // Tabard: forward speed streams the back panel, backing up the front.
-      G.updateTabard(P.tabard, dt, G.now, {
-        fwd: -(this.vel.x * sy + this.vel.z * cy) / SPEED,
-        side: (this.vel.x * cy - this.vel.z * sy) / SPEED,
-        air: !this.onGround,
-        legL: P.legL.rotation.x,
-        legR: P.legR.rotation.x,
-      });
+      this.animateCloth(dt, f, twist);
       const wand = !!this.wandOut;
       P.bow.visible = !drinking && !wand && this.weaponIdx === 0;
       // The glove replaces the armoured fist rather than being held in it.

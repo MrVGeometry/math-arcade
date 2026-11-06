@@ -260,6 +260,8 @@
   }
 
   G.buildKnightModel = function (pal) {
+    // The default Classic setting uses the original, lighter knight.
+    if (!G.highGraphics) return G.buildClassicKnight(pal);
     const M = makeKit(pal);
     const root = new THREE.Group();
     root.rotation.order = 'YXZ';
